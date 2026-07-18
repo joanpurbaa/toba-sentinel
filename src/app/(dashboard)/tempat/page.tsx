@@ -1,29 +1,21 @@
-// ==================================================
-// app/dashboard/stok-barang/page.tsx
-// ==================================================
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
 	SearchIcon,
 	PlusIcon,
-	PackagePlusIcon,
 	ChevronDownIcon,
-	ChevronRightIcon,
-	AlertTriangleIcon,
-	CheckCircle2Icon,
-	AlertCircleIcon,
-	ClockIcon,
-	SnowflakeIcon,
-	ShieldAlertIcon,
+	MapPinIcon,
+	HotelIcon,
+	UtensilsIcon,
+	LandmarkIcon,
 	PencilIcon,
 	Trash2Icon,
 	Eye,
 } from "lucide-react";
-import AddItemModal from "@/components/modal/AddItemModal";
-import ReceiveStockModal from "@/components/modal/ReceiveStockModal";
-import ItemDetailModal from "@/components/modal/ItemDetailModal";
-import type { ApiItem } from "@/app/types/StokBarang";
+import AddPlaceModal from "@/components/modal/AddPlaceModal";
+import type { ApiPlace } from "@/app/types/Tempat";
 import {
 	Pagination,
 	PaginationContent,
@@ -50,52 +42,19 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useStokBarangStore } from "@/store/useStokBarangStore";
+import { useTempatStore } from "@/store/useTempatStore";
 
-const statusLabel: Record<ApiItem["status"], string> = {
-	AMAN: "Aman",
-	MENIPIS: "Menipis",
-	KRITIS: "Kritis",
-	PENDING: "Menunggu barang masuk",
+const categoryLabel: Record<string, string> = {
+	WISATA: "Wisata",
+	HOTEL: "Hotel",
+	RESTO: "Resto",
 };
 
-const statusStyle: Record<ApiItem["status"], string> = {
-	AMAN: "bg-primary/10 text-primary border border-primary/20",
-	MENIPIS: "bg-amber-50 text-amber-700 border border-amber-100",
-	KRITIS: "bg-red-50 text-red-700 border border-red-100",
-	PENDING: "bg-slate-100 text-slate-700 border border-slate-200",
+const categoryStyle: Record<string, string> = {
+	WISATA: "bg-primary/10 text-primary border border-primary/20",
+	HOTEL: "bg-sky-50 text-sky-700 border border-sky-100",
+	RESTO: "bg-amber-50 text-amber-700 border border-amber-100",
 };
-
-function formatRelativeTime(dateString: string) {
-	const diffMs = Date.now() - new Date(dateString).getTime();
-	const diffMinutes = Math.floor(diffMs / 60000);
-	if (diffMinutes < 60) return `${diffMinutes} menit yang lalu`;
-	const diffHours = Math.floor(diffMinutes / 60);
-	if (diffHours < 24) return `${diffHours} jam yang lalu`;
-	const diffDays = Math.floor(diffHours / 24);
-	return `${diffDays} hari yang lalu`;
-}
-
-function formatDate(dateString: string) {
-	return new Date(dateString).toLocaleDateString("id-ID", {
-		day: "2-digit",
-		month: "short",
-		year: "numeric",
-	});
-}
-
-function storageIcon(condition: ApiItem["storageCondition"]) {
-	if (condition === "DINGIN" || condition === "BEKU") {
-		return (
-			<span
-				title={condition === "DINGIN" ? "Cold Chain (2-8°C)" : "Beku"}
-				className="inline-flex items-center justify-center w-5 h-5 rounded bg-sky-50 border border-sky-100">
-				<SnowflakeIcon className="w-3 h-3 text-sky-600" />
-			</span>
-		);
-	}
-	return null;
-}
 
 function getPageNumbers(
 	current: number,
@@ -117,33 +76,27 @@ function getPageNumbers(
 	return pages;
 }
 
-export default function StokBarang() {
-	const items = useStokBarangStore((state) => state.items);
-	const pagination = useStokBarangStore((state) => state.pagination);
-	const page = useStokBarangStore((state) => state.page);
-	const setPage = useStokBarangStore((state) => state.setPage);
-	const pageSize = useStokBarangStore((state) => state.pageSize);
-	const setPageSize = useStokBarangStore((state) => state.setPageSize);
-	const isLoading = useStokBarangStore((state) => state.isLoading);
-	const searchQuery = useStokBarangStore((state) => state.searchQuery);
-	const setSearchQuery = useStokBarangStore((state) => state.setSearchQuery);
-	const categoryFilter = useStokBarangStore((state) => state.categoryFilter);
-	const setCategoryFilter = useStokBarangStore(
-		(state) => state.setCategoryFilter,
-	);
-	const statusFilter = useStokBarangStore((state) => state.statusFilter);
-	const setStatusFilter = useStokBarangStore((state) => state.setStatusFilter);
-	const fetchItems = useStokBarangStore((state) => state.fetchItems);
+export default function TempatPage() {
+	const router = useRouter();
+	const items = useTempatStore((state) => state.items);
+	const pagination = useTempatStore((state) => state.pagination);
+	const summary = useTempatStore((state) => state.summary);
+	const page = useTempatStore((state) => state.page);
+	const setPage = useTempatStore((state) => state.setPage);
+	const pageSize = useTempatStore((state) => state.pageSize);
+	const setPageSize = useTempatStore((state) => state.setPageSize);
+	const isLoading = useTempatStore((state) => state.isLoading);
+	const searchQuery = useTempatStore((state) => state.searchQuery);
+	const setSearchQuery = useTempatStore((state) => state.setSearchQuery);
+	const categoryFilter = useTempatStore((state) => state.categoryFilter);
+	const setCategoryFilter = useTempatStore((state) => state.setCategoryFilter);
+	const sortBy = useTempatStore((state) => state.sortBy);
+	const setSortBy = useTempatStore((state) => state.setSortBy);
+	const fetchItems = useTempatStore((state) => state.fetchItems);
+	const fetchSummary = useTempatStore((state) => state.fetchSummary);
 
-	// State untuk modal tambah
-	const [isAddItemOpen, setIsAddItemOpen] = useState(false);
-	// State untuk terima barang
-	const [isReceiveStockOpen, setIsReceiveStockOpen] = useState(false);
-	// State untuk detail item
-	const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-
-	// State untuk edit dan hapus
-	const [editTarget, setEditTarget] = useState<ApiItem | null>(null);
+	const [isAddOpen, setIsAddOpen] = useState(false);
+	const [editTarget, setEditTarget] = useState<ApiPlace | null>(null);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -151,7 +104,11 @@ export default function StokBarang() {
 	useEffect(() => {
 		const timeout = setTimeout(fetchItems, 300);
 		return () => clearTimeout(timeout);
-	}, [searchQuery, categoryFilter, statusFilter, page, pageSize, fetchItems]);
+	}, [searchQuery, categoryFilter, sortBy, page, pageSize, fetchItems]);
+
+	useEffect(() => {
+		fetchSummary();
+	}, [fetchSummary]);
 
 	const rangeStart =
 		pagination && pagination.totalItems > 0
@@ -161,24 +118,22 @@ export default function StokBarang() {
 		? Math.min(pagination.page * pagination.pageSize, pagination.totalItems)
 		: 0;
 
-	// Fungsi hapus item
 	const handleDelete = async () => {
 		if (!deleteTargetId) return;
 		setIsDeleting(true);
 		setDeleteError(null);
 		try {
-			// ⚠️ Ganti route fetch jadi query param agar sesuai dengan 1 file /api/items
-			const res = await fetch(`/api/items?id=${deleteTargetId}`, {
+			const res = await fetch(`/api/admin/places?id=${deleteTargetId}`, {
 				method: "DELETE",
 			});
 			const data = await res.json();
 			if (!res.ok) {
-				setDeleteError(data.error ?? "Gagal menghapus item");
+				setDeleteError(data.error ?? "Gagal menghapus tempat");
 				return;
 			}
-			// Sukses, refresh daftar dan tutup dialog
 			setDeleteTargetId(null);
 			fetchItems();
+			fetchSummary();
 		} catch {
 			setDeleteError("Terjadi kesalahan jaringan");
 		} finally {
@@ -191,10 +146,10 @@ export default function StokBarang() {
 			<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 				<div className="space-y-1">
 					<h1 className="text-xl font-bold tracking-tight text-foreground">
-						Stok Barang
+						Data Tempat
 					</h1>
 					<p className="text-sm text-muted-foreground font-medium">
-						Mengelola dan memantau stok barang
+						Kelola destinasi, hotel, dan kuliner terdaftar
 					</p>
 				</div>
 
@@ -202,11 +157,62 @@ export default function StokBarang() {
 					<SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-icon-default" />
 					<input
 						type="text"
-						placeholder="Cari SKU atau nama item..."
+						placeholder="Cari nama atau alamat..."
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 placeholder:text-slate-400 transition-all"
 					/>
+				</div>
+			</div>
+
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+				<div className="p-5 bg-card border border-border border-t-4 border-t-primary rounded-xl shadow-xs">
+					<div className="flex items-start justify-between">
+						<span className="text-sm font-medium text-muted-foreground">
+							Total Tempat
+						</span>
+						<div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+							<MapPinIcon className="w-4 h-4" />
+						</div>
+					</div>
+					<span className="text-3xl font-bold tracking-tight text-foreground mt-4 block">
+						{summary?.totalPlaces ?? "-"}
+					</span>
+				</div>
+				<div className="p-5 bg-card border border-border border-t-4 border-t-primary rounded-xl shadow-xs">
+					<div className="flex items-start justify-between">
+						<span className="text-sm font-medium text-muted-foreground">
+							Destinasi Wisata
+						</span>
+						<div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+							<LandmarkIcon className="w-4 h-4" />
+						</div>
+					</div>
+					<span className="text-3xl font-bold tracking-tight text-foreground mt-4 block">
+						{summary?.totalWisata ?? "-"}
+					</span>
+				</div>
+				<div className="p-5 bg-card border border-border border-t-4 border-t-sky-500 rounded-xl shadow-xs">
+					<div className="flex items-start justify-between">
+						<span className="text-sm font-medium text-muted-foreground">Hotel</span>
+						<div className="p-2 rounded-lg bg-sky-50 text-sky-600 shrink-0">
+							<HotelIcon className="w-4 h-4" />
+						</div>
+					</div>
+					<span className="text-3xl font-bold tracking-tight text-foreground mt-4 block">
+						{summary?.totalHotel ?? "-"}
+					</span>
+				</div>
+				<div className="p-5 bg-card border border-border border-t-4 border-t-amber-500 rounded-xl shadow-xs">
+					<div className="flex items-start justify-between">
+						<span className="text-sm font-medium text-muted-foreground">Resto</span>
+						<div className="p-2 rounded-lg bg-amber-50 text-amber-600 shrink-0">
+							<UtensilsIcon className="w-4 h-4" />
+						</div>
+					</div>
+					<span className="text-3xl font-bold tracking-tight text-foreground mt-4 block">
+						{summary?.totalResto ?? "-"}
+					</span>
 				</div>
 			</div>
 
@@ -220,45 +226,36 @@ export default function StokBarang() {
 								onChange={(e) => setCategoryFilter(e.target.value)}
 								className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 pr-9">
 								<option>Semua Kategori</option>
-								<option>Farmasi</option>
-								<option>Alat Medis</option>
-								<option>Konsumsi</option>
+								<option value="WISATA">Wisata</option>
+								<option value="HOTEL">Hotel</option>
+								<option value="RESTO">Resto</option>
 							</select>
 							<ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
 						</div>
 					</div>
 
-					<div className="flex flex-col space-y-1.5 w-full sm:w-44">
-						<label className="text-xs font-medium text-slate-500">Status Stok</label>
+					<div className="flex flex-col space-y-1.5 w-full sm:w-56">
+						<label className="text-xs font-medium text-slate-500">Urutkan</label>
 						<div className="relative">
 							<select
-								value={statusFilter}
-								onChange={(e) => setStatusFilter(e.target.value)}
+								value={sortBy}
+								onChange={(e) => setSortBy(e.target.value)}
 								className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 pr-9">
-								<option>Semua Status</option>
-								<option>Aman</option>
-								<option>Menipis</option>
-								<option>Kritis</option>
+								<option value="terbaru">Terbaru Diperbarui</option>
+								<option value="bermasalah">Paling Bermasalah</option>
+								<option value="memuaskan">Paling Memuaskan</option>
 							</select>
 							<ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
 						</div>
 					</div>
 				</div>
 
-				<div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
-					<button
-						onClick={() => setIsReceiveStockOpen(true)}
-						className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg shadow-sm transition-colors whitespace-nowrap w-full lg:w-auto cursor-pointer">
-						<PackagePlusIcon className="w-4 h-4" />
-						Terima Barang Masuk
-					</button>
-					<button
-						onClick={() => setIsAddItemOpen(true)}
-						className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-secondary cursor-pointer rounded-lg shadow-sm transition-colors whitespace-nowrap w-full lg:w-auto">
-						<PlusIcon className="w-4 h-4" />
-						Tambah Item Baru
-					</button>
-				</div>
+				<button
+					onClick={() => setIsAddOpen(true)}
+					className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary hover:bg-secondary cursor-pointer rounded-lg shadow-sm transition-colors whitespace-nowrap w-full lg:w-auto">
+					<PlusIcon className="w-4 h-4" />
+					Tambah Tempat
+				</button>
 			</div>
 
 			<div className="bg-white border border-t rounded-xl overflow-hidden flex flex-col justify-between">
@@ -266,13 +263,13 @@ export default function StokBarang() {
 					<table className="w-full text-left border-collapse min-w-[980px]">
 						<thead>
 							<tr className="bg-muted/40 border-b border-muted/20 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-								<th className="px-6 py-3.5">Nama Item</th>
-								<th className="px-6 py-3.5">Kode SKU</th>
+								<th className="px-6 py-3.5">Nama Tempat</th>
 								<th className="px-6 py-3.5">Kategori</th>
-								<th className="px-6 py-3.5">Stok Saat Ini</th>
-								<th className="px-6 py-3.5">Status</th>
-								<th className="px-6 py-3.5">Kadaluarsa Terdekat</th>
-								<th className="px-6 py-3.5">Update Terakhir</th>
+								<th className="px-6 py-3.5">Alamat</th>
+								<th className="px-6 py-3.5">Koordinat</th>
+								<th className="px-6 py-3.5">Rating</th>
+								<th className="px-6 py-3.5">Skor Masalah</th>
+								<th className="px-6 py-3.5">Pemilik</th>
 								<th className="px-6 py-3.5 text-center">Aksi</th>
 							</tr>
 						</thead>
@@ -280,7 +277,7 @@ export default function StokBarang() {
 							{isLoading && (
 								<tr>
 									<td
-										colSpan={8}
+										colSpan={7}
 										className="px-6 py-8 text-center text-sm text-slate-400">
 										Memuat data...
 									</td>
@@ -290,109 +287,83 @@ export default function StokBarang() {
 							{!isLoading && items.length === 0 && (
 								<tr>
 									<td
-										colSpan={8}
+										colSpan={7}
 										className="px-6 py-8 text-center text-sm text-slate-400">
-										Belum ada item yang cocok dengan filter ini.
+										Belum ada tempat yang cocok dengan filter ini.
 									</td>
 								</tr>
 							)}
 
 							{!isLoading &&
-								items.map((item) => (
-									<tr key={item.id} className="hover:bg-slate-50/40 transition-colors">
+								items.map((place) => (
+									<tr
+										key={place.id}
+										onClick={() => router.push(`/tempat/${place.id}`)}
+										className="hover:bg-slate-50/40 transition-colors cursor-pointer">
 										<td className="px-6 py-4">
-											<div className="flex items-center gap-1.5">
-												<span className="font-semibold text-slate-900">{item.name}</span>
-												{storageIcon(item.storageCondition)}
-												{item.isControlledSubstance && (
-													<span title="Golongan Narkotika/Psikotropika">
-														<ShieldAlertIcon className="w-3.5 h-3.5 text-purple-500" />
-													</span>
-												)}
-											</div>
+											<span className="font-semibold text-slate-900">{place.name}</span>
 											<div className="text-xs text-slate-400 mt-0.5">
-												{item.description}
+												{place.placeCode}
 											</div>
 										</td>
-
-										<td className="px-6 py-4 font-mono text-xs text-slate-500 tracking-tight">
-											{item.sku}
-										</td>
-
 										<td className="px-6 py-4">
 											<span
-												className={`inline-flex px-2.5 py-0.5 rounded text-xs font-medium ${
-													item.category === "Farmasi"
-														? "bg-purple-50 text-purple-700 border border-purple-100/50"
-														: item.category === "Alat Medis"
-															? "bg-secondary/10 text-secondary border border-secondary/20"
-															: "bg-slate-100 text-slate-700"
-												}`}>
-												{item.category}
+												className={`inline-flex px-2.5 py-0.5 rounded text-xs font-medium ${categoryStyle[place.category]}`}>
+												{categoryLabel[place.category]}
 											</span>
 										</td>
-
+										<td className="px-6 py-4 text-xs text-slate-500 max-w-[220px] truncate">
+											{place.address ?? "-"}
+										</td>
+										<td className="px-6 py-4 font-mono text-xs text-slate-500">
+											{place.latitude !== null && place.longitude !== null
+												? `${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`
+												: "-"}
+										</td>
 										<td className="px-6 py-4 text-slate-900">
-											<span className="text-base font-bold">{item.quantity}</span>{" "}
-											<span className="text-xs text-slate-400 ml-0.5">{item.unit}</span>
+											{place.rating !== null ? place.rating.toFixed(1) : "-"}
 										</td>
-
 										<td className="px-6 py-4">
-											<span
-												className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${statusStyle[item.status]}`}>
-												{item.status === "AMAN" && (
-													<CheckCircle2Icon className="w-3.5 h-3.5 text-primary" />
-												)}
-												{item.status === "MENIPIS" && (
-													<AlertTriangleIcon className="w-3.5 h-3.5 text-destructive" />
-												)}
-												{item.status === "KRITIS" && (
-													<AlertCircleIcon className="w-3.5 h-3.5 text-red-600" />
-												)}
-												{statusLabel[item.status]}
-											</span>
-										</td>
-
-										<td className="px-6 py-4">
-											{item.nearestExpiry ? (
+											{place.aiTotalMentions > 0 ? (
 												<span
-													className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${
-														item.isExpiringSoon
-															? "bg-orange-50 text-orange-700 border border-orange-100"
-															: "bg-slate-50 text-slate-500 border border-slate-100"
+													className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+														(place.aiGapScore ?? 0) >= 0.6
+															? "bg-red-50 text-red-700 border border-red-100"
+															: (place.aiGapScore ?? 0) >= 0.3
+																? "bg-amber-50 text-amber-700 border border-amber-100"
+																: "bg-green-50 text-green-700 border border-green-100"
 													}`}>
-													{item.isExpiringSoon && <ClockIcon className="w-3.5 h-3.5" />}
-													{formatDate(item.nearestExpiry)}
+													{Math.round((place.aiGapScore ?? 0) * 100)}%
 												</span>
 											) : (
-												<span className="text-xs text-slate-300">—</span>
+												<span className="text-xs text-slate-300">Belum ada data</span>
 											)}
 										</td>
-
-										<td className="px-6 py-4 text-xs text-slate-400 font-medium">
-											{formatRelativeTime(item.updatedAt)}
+										<td className="px-6 py-4 text-xs text-slate-500">
+											{place.ownerName ?? "-"}
 										</td>
-
-										<td className="px-6 py-4 text-center">
+										<td
+											className="px-6 py-4 text-center"
+											onClick={(e) => e.stopPropagation()}>
 											<div className="inline-flex items-center gap-1">
 												<button
-													onClick={() => setSelectedItemId(item.id)}
+													onClick={() => router.push(`/tempat/${place.id}`)}
 													className="inline-flex items-center p-1.5 text-icon-default hover:bg-slate-100 rounded-lg transition-colors">
 													<Eye className="w-4 h-4 cursor-pointer" />
 												</button>
 												<button
-													onClick={() => setEditTarget(item)}
+													onClick={() => setEditTarget(place)}
 													className="inline-flex items-center p-1.5 text-icon-default hover:bg-slate-100 rounded-lg transition-colors"
-													title="Edit Item">
+													title="Edit Tempat">
 													<PencilIcon className="w-4 h-4 cursor-pointer" />
 												</button>
 												<button
 													onClick={() => {
 														setDeleteError(null);
-														setDeleteTargetId(item.id);
+														setDeleteTargetId(place.id);
 													}}
 													className="inline-flex items-center p-1.5 text-icon-warning hover:bg-red-50 rounded-lg transition-colors"
-													title="Hapus Item">
+													title="Hapus Tempat">
 													<Trash2Icon className="w-4 h-4 cursor-pointer" />
 												</button>
 											</div>
@@ -416,12 +387,12 @@ export default function StokBarang() {
 									<span className="font-bold text-slate-700">
 										{pagination.totalItems}
 									</span>{" "}
-									item
+									tempat
 								</>
 							) : (
 								<>
 									Menampilkan{" "}
-									<span className="font-bold text-slate-700">{items.length}</span> item
+									<span className="font-bold text-slate-700">{items.length}</span> tempat
 								</>
 							)}
 						</span>
@@ -505,37 +476,27 @@ export default function StokBarang() {
 				</div>
 			</div>
 
-			{isAddItemOpen && (
-				<AddItemModal
-					isOpen={isAddItemOpen}
-					onClose={() => setIsAddItemOpen(false)}
-					onSuccess={fetchItems}
+			{isAddOpen && (
+				<AddPlaceModal
+					isOpen={isAddOpen}
+					onClose={() => setIsAddOpen(false)}
+					onSuccess={() => {
+						fetchItems();
+						fetchSummary();
+					}}
 				/>
 			)}
 
 			{editTarget && (
-				<AddItemModal
+				<AddPlaceModal
 					isOpen={editTarget !== null}
 					onClose={() => setEditTarget(null)}
 					onSuccess={() => {
 						setEditTarget(null);
 						fetchItems();
+						fetchSummary();
 					}}
 					editData={editTarget}
-				/>
-			)}
-
-			{isReceiveStockOpen && (
-				<ReceiveStockModal
-					onClose={() => setIsReceiveStockOpen(false)}
-					onSuccess={fetchItems}
-				/>
-			)}
-
-			{selectedItemId && (
-				<ItemDetailModal
-					itemId={selectedItemId}
-					onClose={() => setSelectedItemId(null)}
 				/>
 			)}
 
@@ -549,10 +510,10 @@ export default function StokBarang() {
 				}}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Hapus item ini?</AlertDialogTitle>
+						<AlertDialogTitle>Hapus tempat ini?</AlertDialogTitle>
 						<AlertDialogDescription>
-							Tindakan ini tidak dapat dibatalkan. Data item beserta seluruh batch stok
-							yang terkait akan dihapus permanen.
+							Tindakan ini tidak dapat dibatalkan. Data ulasan dan laporan terkait
+							tempat ini akan ikut terhapus.
 						</AlertDialogDescription>
 						{deleteError && (
 							<div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs rounded-lg mt-2 font-medium">

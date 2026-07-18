@@ -60,6 +60,7 @@ type PlaceDetail = {
 	facilitiesOrActivities: string | null;
 	description: string | null;
 	ownershipType: string;
+	ownerName: string | null;
 	issueSummaries: IssueSummary[];
 	reviews: Review[];
 };
@@ -165,6 +166,13 @@ export default function PlaceDetailPage() {
 								{formatPrice(place.priceMin, place.priceMax)}
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<div className="mt-4 pt-4 border-t border-border">
+					<div className="text-xs text-muted-foreground">Nama Pemilik</div>
+					<div className="text-sm text-foreground">
+						{place.ownerName ?? "Belum terdaftar"}
 					</div>
 				</div>
 
