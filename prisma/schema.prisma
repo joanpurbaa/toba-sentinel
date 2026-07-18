@@ -8,261 +8,179 @@ datasource db {
 
 enum Role {
   ADMIN
-  STAFF
-  DRIVER
+  PEMERINTAH
+  UMKM
+}
+
+enum PlaceCategory {
+  WISATA
+  HOTEL
+  RESTO
+}
+
+enum PlaceStatus {
+  BEROPERASI
+  TUTUP
+}
+
+enum OwnershipType {
+  PUBLIK
+  PRIVAT
+  TIDAK_DIKETAHUI
+}
+
+enum IssueCategory {
+  PARKIR
+  TOILET
+  AKSES
+  KEBERSIHAN
+  HARGA
+  PELAYANAN
+  LAINNYA
+}
+
+enum ReportStatus {
+  BARU
+  DITINJAU
+  DIPROSES
+  SELESAI
+  DITOLAK
 }
 
 enum SourceChannel {
   WEB
-  TELEGRAM
-}
-
-enum StockStatus {
-  AMAN
-  MENIPIS
-  KRITIS
-}
-
-enum ShipmentStatus {
-  DIJADWALKAN
-  DIKIRIM
-  SELESAI
-  DIBATALKAN
-}
-
-enum MovementType {
-  PENAMBAHAN
-  PENGURANGAN
-  DISTRIBUSI
-  KOREKSI
-}
-
-enum StorageCondition {
-  SUHU_RUANG
-  DINGIN
-  BEKU
-}
-
-enum DriverStatus {
-  AKTIF
-  CUTI
-  NONAKTIF
-}
-
-enum VehicleStatus {
-  TERSEDIA
-  DIGUNAKAN
-  PERAWATAN
+  SEED_DATASET
 }
 
 model User {
-  id             String          @id @default(uuid())
+  id             String     @id @default(uuid())
   name           String
-  email          String          @unique
+  email          String     @unique
   passwordHash   String
-  role           Role            @default(STAFF)
-  telegramChatId String?         @unique
-  isActive       Boolean         @default(true)
-  createdAt      DateTime        @default(now())
+  role           Role       @default(UMKM)
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
   createdById    String?
-  createdBy      User?           @relation("UserCreatedBy", fields: [createdById], references: [id])
-  createdUsers   User[]          @relation("UserCreatedBy")
-  shipments      Shipment[]      @relation("ShipmentCreatedBy")
-  stockMovements StockMovement[] @relation("MovementPerformedBy")
-  itemBatches    ItemBatch[]     @relation("BatchReceivedBy")
+  createdBy      User?      @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdUsers   User[]     @relation("UserCreatedBy")
+
+  managedPlaces  Place[]    @relation("PlaceOwner")
+  reportsFiled   Report[]   @relation("ReportFiledBy")
+  reportsHandled Report[]   @relation("ReportHandledBy")
   auditLogs      AuditLog[]
-  driver         Driver?
 
   @@map("users")
 }
 
-model Warehouse {
-  id        String   @id @default(uuid())
-  name      String
-  address   String?
-  createdAt DateTime @default(now())
-  items     Item[]
+model Place {
+  id                     String         @id @default(uuid())
+  placeCode              String         @unique // e.g. WIS-001, HTL-014, RES-089 (from cleaned dataset)
+  name                   String
+  category               PlaceCategory
+  subtype                String?
+  starRating             Int?           // hotel only
+  priceMin               Float?
+  priceMax               Float?
+  priceRaw               String?
+  latitude               Float?
+  longitude              Float?
+  address                String?
+  operationalHour        String?
+  rating                 Float?
+  status                 PlaceStatus    @default(BEROPERASI)
+  facilitiesOrActivities String?
+  description            String?
+  ownershipType          OwnershipType  @default(TIDAK_DIKETAHUI)
 
-  @@map("warehouses")
+  ownerId                String?
+  owner                  User?          @relation("PlaceOwner", fields: [ownerId], references: [id])
+
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  reviews                Review[]
+  reports                Report[]
+  issueSummaries         PlaceIssueSummary[]
+
+  @@index([category])
+  @@index([ownershipType])
+  @@map("places")
 }
 
-model Category {
-  id    String @id @default(uuid())
-  name  String @unique
-  items Item[]
+model Review {
+  id               String    @id @default(uuid())
+  placeId          String?
+  place            Place?    @relation(fields: [placeId], references: [id])
+  placeNameRaw     String    // original name as scraped, kept even if unmatched to a Place
+  reviewerName     String?
+  reviewerRating   Float?
+  reviewText       String?
+  publishedAtRaw   String?
+  scrapedAtDate    DateTime?
+  reviewerType     String?
+  createdAt        DateTime  @default(now())
 
-  @@map("categories")
+  issueTags        ReviewIssueTag[]
+
+  @@index([placeId])
+  @@map("reviews")
 }
 
-model Vendor {
-  id             String          @id @default(uuid())
-  name           String          @unique
-  phone          String?
-  address        String?
-  stockMovements StockMovement[]
-  itemBatches    ItemBatch[]
+model ReviewIssueTag {
+  id         String        @id @default(uuid())
+  reviewId   String
+  review     Review        @relation(fields: [reviewId], references: [id])
+  category   IssueCategory
+  isNegative Boolean       @default(true)
+  confidence Float?
+  createdAt  DateTime      @default(now())
 
-  @@map("vendors")
+  @@unique([reviewId, category])
+  @@index([category])
+  @@map("review_issue_tags")
 }
 
-model Destination {
-  id        String     @id @default(uuid())
-  name      String
-  address   String?
-  phone     String?
-  latitude  Float?
-  longitude Float?
-  shipments Shipment[]
-
-  @@map("destinations")
-}
-
-model Driver {
-  id              String       @id @default(uuid())
-  name            String
-  simNumber       String
-  simType         String
-  phone           String
-  status          DriverStatus @default(AKTIF)
-  usualVehicleId  String?
-  usualVehicle    Vehicle?     @relation("DriverUsualVehicle", fields: [usualVehicleId], references: [id])
-  usualForVehicles Vehicle[]   @relation("VehicleUsualDriver")
-  shipments       Shipment[]   @relation("ShipmentDriver")
-  createdAt       DateTime     @default(now())
-  userId          String?      @unique
-  user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@map("drivers")
-}
-
-model Vehicle {
-  id              String        @id @default(uuid())
-  plateNumber     String        @unique
-  model           String
-  vehicleType     String
-  status          VehicleStatus @default(TERSEDIA)
-  usualDriverId   String?
-  usualDriver     Driver?       @relation("VehicleUsualDriver", fields: [usualDriverId], references: [id])
-  usualForDrivers Driver[]      @relation("DriverUsualVehicle")
-  shipments       Shipment[]    @relation("ShipmentVehicle")
-  createdAt       DateTime      @default(now())
-
-  @@map("vehicles")
-}
-
-model Item {
-  id                    String            @id @default(uuid())
-  sku                   String            @unique
-  name                  String
-  description           String?
-  unit                  String
-  currentStock          Int               @default(0)
-  minThreshold          Int               @default(0)
-  criticalThreshold     Int               @default(0)
-  expiryWarningDays     Int               @default(90)
-  storageCondition      StorageCondition  @default(SUHU_RUANG)
-  registrationNumber    String?
-  isControlledSubstance Boolean           @default(false)
-  categoryId            String
-  category              Category          @relation(fields: [categoryId], references: [id])
-  warehouseId           String
-  warehouse             Warehouse         @relation(fields: [warehouseId], references: [id])
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
-  batches               ItemBatch[]
-  shipments             Shipment[]
-  stockMovements        StockMovement[]
-
-  @@index([categoryId])
-  @@index([warehouseId])
-  @@map("items")
-}
-
-model ItemBatch {
-  id                String    @id @default(uuid())
-  itemId            String
-  item              Item      @relation(fields: [itemId], references: [id])
-  batchNumber       String
-  expiryDate        DateTime
-  quantityReceived  Int
-  quantityRemaining Int
-  vendorId          String?
-  vendor            Vendor?   @relation(fields: [vendorId], references: [id])
-  receivedById      String
-  receivedBy        User      @relation("BatchReceivedBy", fields: [receivedById], references: [id])
-  receivedAt        DateTime  @default(now())
-  isActive          Boolean   @default(true)
-  stockMovements    StockMovement[]
-
-  @@index([itemId, expiryDate])
-  @@map("item_batches")
-}
-
-model Shipment {
-  id             String                  @id @default(uuid())
-  code           String                  @unique
-  itemId         String
-  item           Item                    @relation(fields: [itemId], references: [id])
-  quantity       Int
-  destinationId  String
-  destination    Destination             @relation(fields: [destinationId], references: [id])
-  scheduledAt    DateTime
-  driverId       String?
-  driver         Driver?                 @relation("ShipmentDriver", fields: [driverId], references: [id])
-  vehicleId      String?
-  vehicle        Vehicle?                @relation("ShipmentVehicle", fields: [vehicleId], references: [id])
-  status         ShipmentStatus          @default(DIJADWALKAN)
-  sourceChannel  SourceChannel           @default(WEB)
-  createdById    String
-  createdBy      User                    @relation("ShipmentCreatedBy", fields: [createdById], references: [id])
-  createdAt      DateTime                @default(now())
-  updatedAt      DateTime                @updatedAt
-  stockMovements StockMovement[]
-  trackingPoints ShipmentTrackingPoint[]
-
-  @@index([status])
-  @@index([destinationId])
-  @@index([driverId])
-  @@index([vehicleId])
-  @@map("shipments")
-}
-
-model ShipmentTrackingPoint {
-  id         String   @id @default(uuid())
-  shipmentId String
-  shipment   Shipment @relation(fields: [shipmentId], references: [id])
-  latitude   Float
-  longitude  Float
-  recordedAt DateTime @default(now())
-
-  @@index([shipmentId, recordedAt])
-  @@map("shipment_tracking_points")
-}
-
-model StockMovement {
+// Aggregated, precomputed gap-score per place per category so the map/dashboard
+// doesn't have to re-scan raw reviews on every request.
+model PlaceIssueSummary {
   id             String        @id @default(uuid())
-  itemId         String
-  item           Item          @relation(fields: [itemId], references: [id])
-  batchId        String?
-  batch          ItemBatch?    @relation(fields: [batchId], references: [id])
-  type           MovementType
-  quantityChange Int
-  stockBefore    Int
-  stockAfter     Int
-  shipmentId     String?
-  shipment       Shipment?     @relation(fields: [shipmentId], references: [id])
-  vendorId       String?
-  vendor         Vendor?       @relation(fields: [vendorId], references: [id])
-  note           String?
-  performedById  String
-  performedBy    User          @relation("MovementPerformedBy", fields: [performedById], references: [id])
-  sourceChannel  SourceChannel @default(WEB)
-  createdAt      DateTime      @default(now())
+  placeId        String
+  place          Place         @relation(fields: [placeId], references: [id])
+  category       IssueCategory
+  negativeCount  Int           @default(0)
+  totalMentions  Int           @default(0)
+  gapScore       Float         @default(0) // negativeCount / totalMentions
+  lastComputedAt DateTime      @default(now())
 
-  @@index([itemId])
-  @@index([batchId])
-  @@index([createdAt])
-  @@map("stock_movements")
+  @@unique([placeId, category])
+  @@map("place_issue_summaries")
+}
+
+model Report {
+  id             String       @id @default(uuid())
+  placeId        String
+  place          Place        @relation(fields: [placeId], references: [id])
+  category       IssueCategory
+  title          String
+  description    String
+  status         ReportStatus @default(BARU)
+  sourceChannel  SourceChannel @default(WEB)
+
+  filedById      String
+  filedBy        User         @relation("ReportFiledBy", fields: [filedById], references: [id])
+
+  handledById    String?
+  handledBy      User?        @relation("ReportHandledBy", fields: [handledById], references: [id])
+  responseNote   String?
+  respondedAt    DateTime?
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([placeId])
+  @@index([status])
+  @@index([filedById])
+  @@map("reports")
 }
 
 model AuditLog {

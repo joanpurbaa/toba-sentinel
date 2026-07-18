@@ -14,10 +14,24 @@ export interface Activity {
 	isLatest: boolean;
 }
 export interface DashboardData {
-	totalItems: number;
-	criticalStockCount: number;
-	shipmentsToday: { total: number; completed: number; inProgress: number };
-	lastActivity: string;
-	criticalStockList: CriticalStockItem[];
-	recentActivities: Activity[];
+	totalPlaces: number;
+	placesByCategory: { category: string; count: number }[];
+	reviewCoverage: { total: number; tagged: number };
+	topGapAreas: {
+		placeName: string;
+		category: string;
+		gapScore: number;
+		negativeCount: number;
+		totalMentions: number;
+	}[];
+	reportsByStatus: { status: string; count: number }[];
+	recentReports: {
+		title: string;
+		placeName: string;
+		filedBy: string;
+		category: string;
+		status: string;
+		createdAt: string;
+	}[];
 }
+

@@ -1,19 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
 import { redis } from "@/lib/redis";
-import {
-	getRecentStockMovementLogs,
-	formatRelativeTime,
-} from "@/lib/stockMovements";
 
-const CACHE_KEY = "pharmasync:dashboard:overview";
+const CACHE_KEY = "tobasentinel:dashboard:overview";
 const CACHE_TTL_SECONDS = 30;
-
-function getStockStatus(current: number, critical: number, min: number) {
-	if (current <= critical) return "KRITIS";
-	if (current <= min) return "MENIPIS";
-	return "AMAN";
-}
 
 export async function GET() {
 	const cachedData = await redis.get(CACHE_KEY);
@@ -21,96 +11,65 @@ export async function GET() {
 		return NextResponse.json(cachedData);
 	}
 
-	const startOfToday = new Date();
-	startOfToday.setHours(0, 0, 0, 0);
-	const endOfToday = new Date();
-	endOfToday.setHours(23, 59, 59, 999);
-
-	const [totalItems, items, shipmentsToday, recentMovements] = await Promise.all(
-		[
-			db.item.count(),
-			db.item.findMany({
-				select: {
-					id: true,
-					name: true,
-					sku: true,
-					unit: true,
-					currentStock: true,
-					minThreshold: true,
-					criticalThreshold: true,
-					category: { select: { name: true } },
-				},
-			}),
-			db.shipment.findMany({
-				where: { scheduledAt: { gte: startOfToday, lte: endOfToday } },
-				select: { status: true },
-			}),
-			getRecentStockMovementLogs(6),
-		],
-	);
-
-	const itemsWithStatus = items
-		.map((item) => ({
-			...item,
-			status: getStockStatus(
-				item.currentStock,
-				item.criticalThreshold,
-				item.minThreshold,
-			),
-		}))
-		.filter((item) => item.status !== "AMAN");
-
-	const criticalStockCount = itemsWithStatus.filter(
-		(item) => item.status === "KRITIS",
-	).length;
-
-	const criticalStockList = itemsWithStatus
-		.sort(
-			(a, b) =>
-				(a.status === "KRITIS" ? -1 : 0) - (b.status === "KRITIS" ? -1 : 0),
-		)
-		.slice(0, 5)
-		.map((item) => ({
-			name: item.name,
-			sku: item.sku,
-			category: item.category.name,
-			stock: `${item.currentStock} ${item.unit}`,
-			status: item.status === "KRITIS" ? "Stok Kritis" : "Stok Menipis",
-			type: item.status === "KRITIS" ? "kritis" : "menipis",
-		}));
-
-	const shipmentsCompleted = shipmentsToday.filter(
-		(s) => s.status === "SELESAI",
-	).length;
-	const shipmentsInProgress = shipmentsToday.filter(
-		(s) => s.status === "DIJADWALKAN" || s.status === "DIKIRIM",
-	).length;
-
-	const recentActivities = recentMovements.map((log, idx) => ({
-		title: log.action,
-		time: formatRelativeTime(log.createdAt),
-		user: log.user,
-		detail: log.targetDetail
-			? `${log.targetItem} · ${log.targetDetail} (${log.change})`
-			: `${log.targetItem} (${log.change})`,
-		isLatest: idx === 0,
-	}));
-
-	const lastActivity = recentMovements[0]
-		? formatRelativeTime(recentMovements[0].createdAt)
-		: "-";
+	const [
+		totalPlaces,
+		placesByCategory,
+		taggedReviewCount,
+		totalReviews,
+		topGaps,
+		reportsByStatus,
+		recentReports,
+	] = await Promise.all([
+		db.place.count(),
+		db.place.groupBy({ by: ["category"], _count: { _all: true } }),
+		db.reviewIssueTag.groupBy({ by: ["reviewId"] }).then((r) => r.length),
+		db.review.count(),
+		db.placeIssueSummary.findMany({
+			where: { totalMentions: { gt: 0 } },
+			orderBy: { gapScore: "desc" },
+			take: 5,
+			include: { place: { select: { name: true, category: true } } },
+		}),
+		db.report.groupBy({ by: ["status"], _count: { _all: true } }),
+		db.report.findMany({
+			orderBy: { createdAt: "desc" },
+			take: 6,
+			include: {
+				place: { select: { name: true } },
+				filedBy: { select: { name: true } },
+			},
+		}),
+	]);
 
 	const response = {
-		totalItems,
-		criticalStockCount,
-		shipmentsToday: {
-			total: shipmentsToday.length,
-			completed: shipmentsCompleted,
-			inProgress: shipmentsInProgress,
+		totalPlaces,
+		placesByCategory: placesByCategory.map((p) => ({
+			category: p.category,
+			count: p._count._all,
+		})),
+		reviewCoverage: {
+			total: totalReviews,
+			tagged: taggedReviewCount,
 		},
-		lastActivity,
-		criticalStockList,
-		recentActivities,
+		topGapAreas: topGaps.map((g) => ({
+			placeName: g.place.name,
+			category: g.category,
+			gapScore: Math.round(g.gapScore * 100),
+			negativeCount: g.negativeCount,
+			totalMentions: g.totalMentions,
+		})),
+		reportsByStatus: reportsByStatus.map((r) => ({
+			status: r.status,
+			count: r._count._all,
+		})),
+		recentReports: recentReports.map((r) => ({
+			title: r.title,
+			placeName: r.place.name,
+			filedBy: r.filedBy.name,
+			category: r.category,
+			status: r.status,
+			createdAt: r.createdAt,
+		})),
 	};
 
 	await redis.set(CACHE_KEY, response, { ex: CACHE_TTL_SECONDS });

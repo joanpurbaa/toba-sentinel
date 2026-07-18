@@ -12,10 +12,8 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
 	isLoading: false,
 	fetchDashboard: async () => {
 		set({ isLoading: true });
-
 		const response = await fetch("/api/dashboard");
 		const json = await response.json();
-
 		set({ data: json, isLoading: false });
 	},
 }));
