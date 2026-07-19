@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,6 +11,7 @@ import {
 	AlertTriangleIcon,
 	ArrowLeftIcon,
 } from "lucide-react";
+import { usePlaceDetailStore } from "@/store/usePlaceDetailStore";
 
 const CATEGORY_LABEL: Record<string, string> = {
 	WISATA: "Destinasi Wisata",
@@ -28,43 +29,6 @@ const ISSUE_LABEL: Record<string, string> = {
 	LAINNYA: "Lainnya",
 };
 
-type IssueSummary = {
-	category: string;
-	negativeCount: number;
-	totalMentions: number;
-	gapScore: number;
-};
-
-type Review = {
-	id: string;
-	reviewerName: string | null;
-	reviewerRating: number | null;
-	reviewText: string | null;
-	publishedAtRaw: string | null;
-	isNegativeSource?: boolean;
-	issueTags?: { category: string; confidence: number }[];
-};
-
-type PlaceDetail = {
-	id: string;
-	placeCode: string;
-	name: string;
-	category: string;
-	subtype: string | null;
-	priceMin: number | null;
-	priceMax: number | null;
-	priceRaw: string | null;
-	address: string | null;
-	operationalHour: string | null;
-	rating: number | null;
-	facilitiesOrActivities: string | null;
-	description: string | null;
-	ownershipType: string;
-	ownerName: string | null;
-	issueSummaries: IssueSummary[];
-	reviews: Review[];
-};
-
 function formatPrice(min: number | null, max: number | null) {
 	if (min === null && max === null) return "Tidak ada info harga";
 	if (min === 0 && max === 0) return "Gratis";
@@ -74,25 +38,13 @@ function formatPrice(min: number | null, max: number | null) {
 
 export default function PlaceDetailPage() {
 	const params = useParams<{ id: string }>();
-	const [place, setPlace] = useState<PlaceDetail | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const [notFound, setNotFound] = useState(false);
+	const { place, isLoading, notFound, fetchPlace, reset } =
+		usePlaceDetailStore();
 
 	useEffect(() => {
-		fetch(`/api/places/${params.id}`)
-			.then((res) => {
-				if (!res.ok) throw new Error("not found");
-				return res.json();
-			})
-			.then((data) => {
-				setPlace(data);
-				setIsLoading(false);
-			})
-			.catch(() => {
-				setNotFound(true);
-				setIsLoading(false);
-			});
-	}, [params.id]);
+		fetchPlace(params.id);
+		return () => reset();
+	}, [params.id, fetchPlace, reset]);
 
 	if (isLoading) {
 		return (
@@ -195,7 +147,6 @@ export default function PlaceDetailPage() {
 				)}
 			</div>
 
-			{/* AI-derived weaknesses */}
 			<div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
 				<div className="px-6 py-4 border-b border-border">
 					<h2 className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -244,7 +195,6 @@ export default function PlaceDetailPage() {
 				</div>
 			</div>
 
-			{/* Reviews */}
 			<div className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
 				<div className="px-6 py-4 border-b border-border">
 					<h2 className="text-base font-semibold text-foreground">

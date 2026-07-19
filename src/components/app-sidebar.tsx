@@ -18,13 +18,13 @@ import {
 
 import {
 	LayoutDashboard,
-	Package,
 	Truck,
 	History,
 	Users,
 	Hospital,
 	Box,
 	SparklesIcon,
+  MapPinned,
 } from "lucide-react";
 
 const defaultNavGroups = [
@@ -32,7 +32,7 @@ const defaultNavGroups = [
 		label: "Operasional",
 		items: [
 			{ name: "Dashboard", url: "/dashboard", icon: <LayoutDashboard /> },
-			{ name: "Stok Barang", url: "/stok-barang", icon: <Package /> },
+			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
 			{ name: "Distribusi", url: "/distribusi", icon: <Truck /> },
 			{ name: "Petugas", url: "/petugas", icon: <Users /> },
 		],

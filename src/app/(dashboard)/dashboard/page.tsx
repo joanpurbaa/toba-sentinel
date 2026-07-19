@@ -2,7 +2,9 @@
 
 import dynamic from "next/dynamic";
 
-const DashboardMap = dynamic(() => import("@/components/dashboardMap"), { ssr: false });
+const DashboardMap = dynamic(() => import("@/components/dashboardMap"), {
+	ssr: false,
+});
 
 export default function Dashboard() {
 	return (

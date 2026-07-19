@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
+
+const DETAIL_CACHE_TTL = 30;
 
 export async function GET(
 	_request: Request,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const { id } = await params;
+	const cacheKey = `tobasentinel:place:${id}`;
+
+	const cached = await redis.get(cacheKey);
+	if (cached) {
+		return NextResponse.json(cached);
+	}
 
 	const place = await db.place.findUnique({
 		where: { id },
@@ -35,7 +44,6 @@ export async function GET(
 		);
 	}
 
-	// reviews that are the source of a negative AI tag — surfaced first
 	const negativeSourceReviews = await db.review.findMany({
 		where: {
 			placeId: id,
@@ -83,5 +91,9 @@ export async function GET(
 		})),
 	];
 
-	return NextResponse.json({ ...place, reviews });
+	const response = { ...place, reviews };
+
+	await redis.set(cacheKey, response, { ex: DETAIL_CACHE_TTL });
+
+	return NextResponse.json(response);
 }

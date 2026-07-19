@@ -2,21 +2,21 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyToken } from "@/lib/auth/jwt";
 
-// const protectedPaths = [
-// 	"/dashboard",
-// 	"/distribusi",
-// 	"/stok-barang",
-// 	"/riwayat",
-// 	"/petugas",
-// ];
-const publicPaths = [
-	"/masuk",
-	"/",
+const protectedPaths = [
 	"/dashboard",
 	"/distribusi",
 	"/stok-barang",
 	"/riwayat",
 	"/petugas",
+];
+const publicPaths = [
+	"/masuk",
+	"/",
+	// "/dashboard",
+	// "/distribusi",
+	// "/stok-barang",
+	// "/riwayat",
+	// "/petugas",
 ];
 
 export async function proxy(request: NextRequest) {
@@ -41,13 +41,13 @@ export async function proxy(request: NextRequest) {
 		return NextResponse.next();
 	}
 
-	// const isProtected = protectedPaths.some(
-	// 	(path) => pathname === path || pathname.startsWith(`${path}/`),
-	// );
+	const isProtected = protectedPaths.some(
+		(path) => pathname === path || pathname.startsWith(`${path}/`),
+	);
 
-	// if (!isProtected) {
-	// 	return NextResponse.next();
-	// }
+	if (!isProtected) {
+		return NextResponse.next();
+	}
 
 	const token = request.cookies.get("auth_token")?.value;
 	if (!token) {

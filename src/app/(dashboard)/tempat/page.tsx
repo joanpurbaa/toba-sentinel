@@ -266,7 +266,7 @@ export default function TempatPage() {
 								<th className="px-6 py-3.5">Nama Tempat</th>
 								<th className="px-6 py-3.5">Kategori</th>
 								<th className="px-6 py-3.5">Alamat</th>
-								<th className="px-6 py-3.5">Koordinat</th>
+								{/* <th className="px-6 py-3.5">Koordinat</th> */}
 								<th className="px-6 py-3.5">Rating</th>
 								<th className="px-6 py-3.5">Skor Masalah</th>
 								<th className="px-6 py-3.5">Pemilik</th>
@@ -315,11 +315,11 @@ export default function TempatPage() {
 										<td className="px-6 py-4 text-xs text-slate-500 max-w-[220px] truncate">
 											{place.address ?? "-"}
 										</td>
-										<td className="px-6 py-4 font-mono text-xs text-slate-500">
+										{/* <td className="px-6 py-4 font-mono text-xs text-slate-500">
 											{place.latitude !== null && place.longitude !== null
 												? `${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`
 												: "-"}
-										</td>
+										</td> */}
 										<td className="px-6 py-4 text-slate-900">
 											{place.rating !== null ? place.rating.toFixed(1) : "-"}
 										</td>

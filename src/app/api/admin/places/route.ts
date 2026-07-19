@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/prisma";
+import { redis } from "@/lib/redis";
 import { parseGoogleMapsLink } from "@/lib/parseGoogleMapsLink";
+
+const LIST_CACHE_PREFIX = "tobasentinel:places:list:";
+const LIST_CACHE_TTL = 30;
+
+async function invalidatePlacesListCache() {
+	const keys = await redis.keys(`${LIST_CACHE_PREFIX}*`);
+	if (keys.length > 0) await redis.del(...keys);
+}
+
+async function invalidatePlacesSummaryCache() {
+	await redis.del("tobasentinel:places:summary");
+}
+
+async function invalidatePlaceDetailCache(id: string) {
+	await redis.del(`tobasentinel:place:${id}`);
+}
 
 export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
@@ -12,6 +29,12 @@ export async function GET(request: Request) {
 		100,
 		Math.max(1, Number(searchParams.get("pageSize")) || 10),
 	);
+
+	const cacheKey = `${LIST_CACHE_PREFIX}${JSON.stringify({ search, category, sort, page, pageSize })}`;
+	const cached = await redis.get(cacheKey);
+	if (cached) {
+		return NextResponse.json(cached);
+	}
 
 	const where = {
 		AND: [
@@ -73,10 +96,14 @@ export async function GET(request: Request) {
 	const start = (page - 1) * pageSize;
 	const paginated = withGapScore.slice(start, start + pageSize);
 
-	return NextResponse.json({
+	const response = {
 		items: paginated,
 		pagination: { page, pageSize, totalItems, totalPages },
-	});
+	};
+
+	await redis.set(cacheKey, response, { ex: LIST_CACHE_TTL });
+
+	return NextResponse.json(response);
 }
 
 export async function POST(request: Request) {
@@ -167,6 +194,9 @@ export async function POST(request: Request) {
 		}
 	}
 
+	await invalidatePlacesListCache();
+	await invalidatePlacesSummaryCache();
+
 	return NextResponse.json({ place }, { status: 201 });
 }
 
@@ -211,6 +241,10 @@ export async function PATCH(request: Request) {
 
 	const place = await db.place.update({ where: { id }, data });
 
+	await invalidatePlacesListCache();
+	await invalidatePlacesSummaryCache();
+	await invalidatePlaceDetailCache(id);
+
 	return NextResponse.json({ place });
 }
 
@@ -223,6 +257,10 @@ export async function DELETE(request: Request) {
 	}
 
 	await db.place.delete({ where: { id } });
+
+	await invalidatePlacesListCache();
+	await invalidatePlacesSummaryCache();
+	await invalidatePlaceDetailCache(id);
 
 	return NextResponse.json({ message: "Tempat berhasil dihapus" });
 }
