@@ -90,6 +90,8 @@ export default function TempatPage() {
 	const setSearchQuery = useTempatStore((state) => state.setSearchQuery);
 	const categoryFilter = useTempatStore((state) => state.categoryFilter);
 	const setCategoryFilter = useTempatStore((state) => state.setCategoryFilter);
+	const bpodtFilter = useTempatStore((state) => state.bpodtFilter);
+	const setBpodtFilter = useTempatStore((state) => state.setBpodtFilter);
 	const sortBy = useTempatStore((state) => state.sortBy);
 	const setSortBy = useTempatStore((state) => state.setSortBy);
 	const fetchItems = useTempatStore((state) => state.fetchItems);
@@ -104,7 +106,15 @@ export default function TempatPage() {
 	useEffect(() => {
 		const timeout = setTimeout(fetchItems, 300);
 		return () => clearTimeout(timeout);
-	}, [searchQuery, categoryFilter, sortBy, page, pageSize, fetchItems]);
+	}, [
+		searchQuery,
+		categoryFilter,
+		bpodtFilter,
+		sortBy,
+		page,
+		pageSize,
+		fetchItems,
+	]);
 
 	useEffect(() => {
 		fetchSummary();
@@ -234,6 +244,22 @@ export default function TempatPage() {
 						</div>
 					</div>
 
+					<div className="flex flex-col space-y-1.5 w-full sm:w-48">
+						<label className="text-xs font-medium text-slate-500">Status BPODT</label>
+						<div className="relative">
+							<select
+								value={bpodtFilter}
+								onChange={(e) => setBpodtFilter(e.target.value)}
+								className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 pr-9">
+								<option>Semua Status BPODT</option>
+								<option value="SINKRON">Sinkron</option>
+								<option value="TIDAK_SINKRON">Tidak Sinkron</option>
+								<option value="BELUM_DICEK">Belum Dicek</option>
+							</select>
+							<ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+						</div>
+					</div>
+
 					<div className="flex flex-col space-y-1.5 w-full sm:w-56">
 						<label className="text-xs font-medium text-slate-500">Urutkan</label>
 						<div className="relative">
@@ -269,7 +295,8 @@ export default function TempatPage() {
 								{/* <th className="px-6 py-3.5">Koordinat</th> */}
 								<th className="px-6 py-3.5">Rating</th>
 								<th className="px-6 py-3.5">Skor Masalah</th>
-								<th className="px-6 py-3.5">Pemilik</th>
+								<th className="px-6 py-3.5">BPODT</th>
+								{/* <th className="px-6 py-3.5">Pemilik</th> */}
 								<th className="px-6 py-3.5 text-center">Aksi</th>
 							</tr>
 						</thead>
@@ -339,9 +366,25 @@ export default function TempatPage() {
 												<span className="text-xs text-slate-300">Belum ada data</span>
 											)}
 										</td>
-										<td className="px-6 py-4 text-xs text-slate-500">
-											{place.ownerName ?? "-"}
+										<td className="px-6 py-4">
+											<span
+												className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+													place.bpodtVerified === "SINKRON"
+														? "bg-green-50 text-green-700 border border-green-100"
+														: place.bpodtVerified === "TIDAK_SINKRON"
+															? "bg-red-50 text-red-700 border border-red-100"
+															: "bg-slate-100 text-slate-500 border border-slate-200"
+												}`}>
+												{place.bpodtVerified === "SINKRON"
+													? "Sinkron"
+													: place.bpodtVerified === "TIDAK_SINKRON"
+														? "Tidak Sinkron"
+														: "Belum Dicek"}
+											</span>
 										</td>
+										{/* <td className="px-6 py-4 text-xs text-slate-500">
+											{place.ownerName ?? "-"}
+										</td> */}
 										<td
 											className="px-6 py-4 text-center"
 											onClick={(e) => e.stopPropagation()}>

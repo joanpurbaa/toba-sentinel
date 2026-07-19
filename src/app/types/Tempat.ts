@@ -20,6 +20,8 @@ export interface ApiPlace {
 	facilitiesOrActivities: string | null;
 	description: string | null;
 	ownerName: string | null;
+	bpodtVerified: "BELUM_DICEK" | "SINKRON" | "TIDAK_SINKRON";
+	bpodtNote: string | null;
 	updatedAt: string;
 	aiGapScore: number | null;
 	aiTotalMentions: number;

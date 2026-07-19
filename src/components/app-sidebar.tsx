@@ -33,30 +33,30 @@ const defaultNavGroups = [
 		items: [
 			{ name: "Dashboard", url: "/dashboard", icon: <LayoutDashboard /> },
 			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
-			{ name: "Distribusi", url: "/distribusi", icon: <Truck /> },
-			{ name: "Petugas", url: "/petugas", icon: <Users /> },
+			// { name: "Distribusi", url: "/distribusi", icon: <Truck /> },
+			// { name: "Petugas", url: "/petugas", icon: <Users /> },
 		],
 	},
-	{
-		label: "Manajemen Data",
-		items: [
-			{ name: "Mitra", url: "/mitra", icon: <Hospital /> },
-			{ name: "Riwayat", url: "/riwayat", icon: <History /> },
-			{ name: "Visualisasi 3D", url: "/warehouse", icon: <Box /> },
-		],
-	},
-	{
-		label: "Asisten AI",
-		items: [
-			{
-				name: "Chat Pharmasync AI",
-				url: "https://t.me/PharmasyncBot",
-				icon: <SparklesIcon />,
-				external: true,
-				accent: true,
-			},
-		],
-	},
+	// {
+	// 	label: "Manajemen Data",
+	// 	items: [
+	// 		{ name: "Mitra", url: "/mitra", icon: <Hospital /> },
+	// 		{ name: "Riwayat", url: "/riwayat", icon: <History /> },
+	// 		{ name: "Visualisasi 3D", url: "/warehouse", icon: <Box /> },
+	// 	],
+	// },
+	// {
+	// 	label: "Asisten AI",
+	// 	items: [
+	// 		{
+	// 			name: "Chat Pharmasync AI",
+	// 			url: "https://t.me/PharmasyncBot",
+	// 			icon: <SparklesIcon />,
+	// 			external: true,
+	// 			accent: true,
+	// 		},
+	// 	],
+	// },
 ];
 
 const driverNavGroups = [

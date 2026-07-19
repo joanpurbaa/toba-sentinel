@@ -23,6 +23,7 @@ export async function GET(request: Request) {
 	const { searchParams } = new URL(request.url);
 	const search = searchParams.get("search") ?? "";
 	const category = searchParams.get("category");
+	const bpodt = searchParams.get("bpodt");
 	const sort = searchParams.get("sort") ?? "terbaru";
 	const page = Math.max(1, Number(searchParams.get("page")) || 1);
 	const pageSize = Math.min(
@@ -30,7 +31,7 @@ export async function GET(request: Request) {
 		Math.max(1, Number(searchParams.get("pageSize")) || 10),
 	);
 
-	const cacheKey = `${LIST_CACHE_PREFIX}${JSON.stringify({ search, category, sort, page, pageSize })}`;
+	const cacheKey = `${LIST_CACHE_PREFIX}${JSON.stringify({ search, category, bpodt, sort, page, pageSize })}`;
 	const cached = await redis.get(cacheKey);
 	if (cached) {
 		return NextResponse.json(cached);
@@ -49,6 +50,9 @@ export async function GET(request: Request) {
 				: {},
 			category && category !== "Semua Kategori"
 				? { category: category as any }
+				: {},
+			bpodt && bpodt !== "Semua Status BPODT"
+				? { bpodtVerified: bpodt as any }
 				: {},
 		],
 	};

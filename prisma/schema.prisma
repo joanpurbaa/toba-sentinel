@@ -39,6 +39,12 @@ enum IssueCategory {
   LAINNYA
 }
 
+enum BpodtVerification {
+  BELUM_DICEK
+  SINKRON
+  TIDAK_SINKRON
+}
+
 enum ReportStatus {
   BARU
   DITINJAU
@@ -92,6 +98,8 @@ model Place {
   description            String?
   ownershipType          OwnershipType  @default(TIDAK_DIKETAHUI)
   ownerName              String?
+  bpodtVerified          BpodtVerification @default(BELUM_DICEK)
+  bpodtNote              String?
 
   ownerId                String?
   owner                  User?          @relation("PlaceOwner", fields: [ownerId], references: [id])

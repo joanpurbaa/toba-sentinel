@@ -6,20 +6,20 @@ import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import { useDashboardStore } from "@/store/useDashboardStore";
 
-type PlacePoint = {
-	id: string;
-	placeCode: string;
-	name: string;
-	category: string;
-	subtype: string | null;
-	latitude: number;
-	longitude: number;
-	rating: number | null;
-	address: string | null;
-	aiGapScore: number | null;
-	aiTotalMentions: number;
-	aiWorstCategory: string | null;
-};
+// type PlacePoint = {
+// 	id: string;
+// 	placeCode: string;
+// 	name: string;
+// 	category: string;
+// 	subtype: string | null;
+// 	latitude: number;
+// 	longitude: number;
+// 	rating: number | null;
+// 	address: string | null;
+// 	aiGapScore: number | null;
+// 	aiTotalMentions: number;
+// 	aiWorstCategory: string | null;
+// };
 
 const CATEGORY_LABEL: Record<string, string> = {
 	WISATA: "Wisata",
