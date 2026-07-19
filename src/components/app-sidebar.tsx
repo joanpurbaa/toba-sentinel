@@ -25,6 +25,7 @@ import {
 	Box,
 	SparklesIcon,
   MapPinned,
+  Landmark,
 } from "lucide-react";
 
 const defaultNavGroups = [
@@ -33,6 +34,7 @@ const defaultNavGroups = [
 		items: [
 			{ name: "Dashboard", url: "/dashboard", icon: <LayoutDashboard /> },
 			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
+			{ name: "Anggaran", url: "/anggaran", icon: <Landmark /> },
 			// { name: "Distribusi", url: "/distribusi", icon: <Truck /> },
 			// { name: "Petugas", url: "/petugas", icon: <Users /> },
 		],

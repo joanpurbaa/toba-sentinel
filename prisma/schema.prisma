@@ -73,6 +73,7 @@ model User {
   managedPlaces  Place[]    @relation("PlaceOwner")
   reportsFiled   Report[]   @relation("ReportFiledBy")
   reportsHandled Report[]   @relation("ReportHandledBy")
+  budgetApprovals BudgetProposal[] @relation("BudgetApprovedBy")
   auditLogs      AuditLog[]
 
   @@map("users")
@@ -110,6 +111,7 @@ model Place {
   reviews                Review[]
   reports                Report[]
   issueSummaries         PlaceIssueSummary[]
+  budgetProposal         BudgetProposal?
 
   @@index([category])
   @@index([ownershipType])
@@ -163,6 +165,35 @@ model PlaceIssueSummary {
 
   @@unique([placeId, category])
   @@map("place_issue_summaries")
+}
+
+enum BudgetProposalStatus {
+  MENUNGGU
+  DISETUJUI
+  DICAIRKAN
+  DITOLAK
+}
+
+model BudgetProposal {
+  id                String               @id @default(uuid())
+  placeId           String
+  place             Place                @relation(fields: [placeId], references: [id])
+  worstCategory     IssueCategory
+  worstGapScore     Float
+  urgencyScore      Float
+  affectedUmkmCount Int                  @default(0)
+  status            BudgetProposalStatus @default(MENUNGGU)
+  approvedAmount    Float?
+  approvedById      String?
+  approvedBy        User?                @relation("BudgetApprovedBy", fields: [approvedById], references: [id])
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@unique([placeId])
+  @@index([status])
+  @@index([urgencyScore])
+  @@map("budget_proposals")
 }
 
 model Report {

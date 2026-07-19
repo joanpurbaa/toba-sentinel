@@ -4,10 +4,7 @@ import { verifyToken } from "@/lib/auth/jwt";
 
 const protectedPaths = [
 	"/dashboard",
-	"/distribusi",
-	"/stok-barang",
-	"/riwayat",
-	"/petugas",
+	"/tempat",
 ];
 const publicPaths = [
 	"/masuk",

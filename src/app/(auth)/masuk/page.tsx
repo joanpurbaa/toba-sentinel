@@ -77,10 +77,10 @@ export default function Masuk() {
 						height="28"
 						src="/icon.svg"
 						alt="icon"
-						className="w-7 h-7"
+						className="w-7 h-7 object-cover"
 					/>
 					<span className="text-base font-bold text-secondary tracking-tight">
-						pharmasync
+						Toba Sentinel
 					</span>
 				</div>
 
@@ -202,7 +202,7 @@ export default function Masuk() {
 
 				<div className="absolute top-10 left-10 right-10 space-y-4 z-10">
 					<div className="flex gap-2">
-						<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-[11px] font-bold">
+						<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 border border-red-300 text-red-300 text-[11px] font-bold">
 							<ActivityIcon className="w-3 h-3" />
 							Real-time
 						</span>
@@ -220,12 +220,12 @@ export default function Masuk() {
 					</p>
 				</div>
 
-				<div className="relative w-full max-w-xl h-[85%] mt-20">
+				<div className="relative w-full h-[700px] mt-20">
 					<Image
-						src="/man.webp"
+						src="/man.png"
 						alt="Petugas lapangan Pharmasync"
 						fill
-						className="object-cover object-top"
+						className="object-contain object-bottom"
 						priority
 					/>
 					<div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-secondary to-transparent"></div>

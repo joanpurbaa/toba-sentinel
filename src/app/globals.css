@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-	--primary2: oklch(0.6 0.19 259);
-	--secondary2: oklch(0.28 0.06 240);
+	--primary2: oklch(59.2% 0.204 26);
+	--secondary2: oklch(45.8% 0.167 27);
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--font-sans: var(--font-sans);
