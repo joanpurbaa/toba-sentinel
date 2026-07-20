@@ -58,6 +58,38 @@ enum SourceChannel {
   SEED_DATASET
 }
 
+enum CorridorStatus {
+  OPTIMAL
+  NEED_TRANSPORT
+  ISOLATED_UMKM
+}
+
+model TourismCorridor {
+  id              String         @id @default(cuid())
+  name            String         // Contoh: "Koridor Samosir Ring Road - Tomok Shuttle"
+  kabupaten       String
+  description     String?
+  status          CorridorStatus @default(NEED_TRANSPORT)
+  
+  // Relasi ke Place (Destinasi Utama)
+  placeId         String
+  place           Place          @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  
+  // Metadata Transportasi & UMKM
+  transitHubName  String         // Nama Pelabuhan/Terminal terdekat (misal: "Pelabuhan Ajibata")
+  distanceToHubKm Float          // Jarak dari Transit Hub ke Destinasi (Km)
+  hasPublicTransit Boolean       @default(false)
+  transportTypes  String[]       // ["Angkot", "Ferry", "Shuttle Bus"]
+  connectedUmkmCount Int         @default(0)
+  
+  // Rekomendasi Intervensi
+  recommendedAction String?      // Contoh: "Penambahan 2 unit Shuttle Bus Rute Ajibata - Tomok"
+  estimatedBudget Float?         // Estimasi Biaya Intervensi
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
 model User {
   id             String     @id @default(uuid())
   name           String
@@ -80,12 +112,12 @@ model User {
 }
 
 model Place {
-  id                     String         @id @default(uuid())
-  placeCode              String         @unique // e.g. WIS-001, HTL-014, RES-089 (from cleaned dataset)
+  id                     String            @id @default(uuid())
+  placeCode              String            @unique
   name                   String
   category               PlaceCategory
   subtype                String?
-  starRating             Int?           // hotel only
+  starRating             Int?              
   priceMin               Float?
   priceMax               Float?
   priceRaw               String?
@@ -94,24 +126,25 @@ model Place {
   address                String?
   operationalHour        String?
   rating                 Float?
-  status                 PlaceStatus    @default(BEROPERASI)
+  status                 PlaceStatus       @default(BEROPERASI)
   facilitiesOrActivities String?
   description            String?
-  ownershipType          OwnershipType  @default(TIDAK_DIKETAHUI)
+  ownershipType          OwnershipType     @default(TIDAK_DIKETAHUI)
   ownerName              String?
   bpodtVerified          BpodtVerification @default(BELUM_DICEK)
   bpodtNote              String?
 
   ownerId                String?
-  owner                  User?          @relation("PlaceOwner", fields: [ownerId], references: [id])
+  owner                  User?             @relation("PlaceOwner", fields: [ownerId], references: [id])
 
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
   reviews                Review[]
   reports                Report[]
   issueSummaries         PlaceIssueSummary[]
   budgetProposal         BudgetProposal?
+  corridors              TourismCorridor[]
 
   @@index([category])
   @@index([ownershipType])
@@ -244,3 +277,4 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+

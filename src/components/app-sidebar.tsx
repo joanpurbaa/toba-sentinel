@@ -21,6 +21,7 @@ import {
   MapPinned,
   Landmark,
   ShieldCheck,
+  Bus,
 } from "lucide-react";
 
 const defaultNavGroups = [
@@ -30,7 +31,8 @@ const defaultNavGroups = [
 			{ name: "Dashboard", url: "/dashboard", icon: <LayoutDashboard /> },
 			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
 			{ name: "Anggaran", url: "/anggaran", icon: <Landmark /> },
-			{ name: "BPODT Audit", url: "/bpodt-audit", icon: <ShieldCheck   /> },
+			{ name: "BPODT Audit", url: "/bpodt-audit", icon: <ShieldCheck /> },
+			{ name: "Koridor Wisata", url: "/koridor", icon: <Bus /> },
 			// { name: "Distribusi", url: "/distribusi", icon: <Truck /> },
 			// { name: "Petugas", url: "/petugas", icon: <Users /> },
 		],
