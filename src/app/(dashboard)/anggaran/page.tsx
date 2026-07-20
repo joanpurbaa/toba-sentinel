@@ -8,6 +8,7 @@ import {
 	CheckCircle2Icon,
 	XCircleIcon,
 	WalletIcon,
+	ChevronDownIcon,
 } from "lucide-react";
 import {
 	Pagination,
@@ -51,6 +52,11 @@ const STATUS_COLOR: Record<string, string> = {
 	DITOLAK: "bg-gray-50 text-gray-500 border-gray-100",
 };
 
+const FUNDING_LABEL: Record<string, string> = {
+	APBD: "APBD",
+	KEMENPAREKRAF: "Kemenparekraf",
+};
+
 interface Proposal {
 	id: string;
 	worstCategory: string;
@@ -59,7 +65,9 @@ interface Proposal {
 	affectedUmkmCount: number;
 	status: string;
 	approvedAmount: number | null;
+	fundingSource: string | null;
 	notes: string | null;
+	kabupaten: string;
 	place: { id: string; name: string; placeCode: string; address: string | null };
 	approvedBy: { name: string } | null;
 }
@@ -87,6 +95,10 @@ function getPageNumbers(
 export default function AnggaranPage() {
 	const items = useAnggaranStore((state) => state.items);
 	const pagination = useAnggaranStore((state) => state.pagination);
+	const maxUrgency = useAnggaranStore((state) => state.maxUrgency);
+	const availableKabupaten = useAnggaranStore(
+		(state) => state.availableKabupaten,
+	);
 	const page = useAnggaranStore((state) => state.page);
 	const setPage = useAnggaranStore((state) => state.setPage);
 	const pageSize = useAnggaranStore((state) => state.pageSize);
@@ -94,17 +106,25 @@ export default function AnggaranPage() {
 	const isLoading = useAnggaranStore((state) => state.isLoading);
 	const searchQuery = useAnggaranStore((state) => state.searchQuery);
 	const setSearchQuery = useAnggaranStore((state) => state.setSearchQuery);
+	const categoryFilter = useAnggaranStore((state) => state.categoryFilter);
+	const setCategoryFilter = useAnggaranStore((state) => state.setCategoryFilter);
+	const kabupatenFilter = useAnggaranStore((state) => state.kabupatenFilter);
+	const setKabupatenFilter = useAnggaranStore(
+		(state) => state.setKabupatenFilter,
+	);
 	const fetchItems = useAnggaranStore((state) => state.fetchItems);
 
 	const [modalTarget, setModalTarget] = useState<Proposal | null>(null);
 	const [amount, setAmount] = useState("");
+	const [fundingSource, setFundingSource] = useState("");
 	const [notes, setNotes] = useState("");
+	const [formError, setFormError] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	useEffect(() => {
 		const timeout = setTimeout(fetchItems, 300);
 		return () => clearTimeout(timeout);
-	}, [searchQuery, page, pageSize, fetchItems]);
+	}, [searchQuery, categoryFilter, kabupatenFilter, page, pageSize, fetchItems]);
 
 	const rangeStart =
 		pagination && pagination.totalItems > 0
@@ -114,30 +134,59 @@ export default function AnggaranPage() {
 		? Math.min(pagination.page * pagination.pageSize, pagination.totalItems)
 		: 0;
 
-	function openApprove(p: Proposal) {
+	function urgencyOutOf10(score: number) {
+		return ((score / maxUrgency) * 10).toFixed(1);
+	}
+
+	function openManage(p: Proposal) {
 		setModalTarget(p);
 		setAmount(p.approvedAmount !== null ? String(p.approvedAmount) : "");
+		setFundingSource(p.fundingSource ?? "");
 		setNotes(p.notes ?? "");
+		setFormError(null);
 	}
 
 	async function submitDecision(status: "DISETUJUI" | "DITOLAK" | "DICAIRKAN") {
 		if (!modalTarget) return;
+		setFormError(null);
+
+		if (status === "DISETUJUI") {
+			if (!amount || Number(amount) <= 0) {
+				setFormError("Nominal anggaran wajib diisi.");
+				return;
+			}
+			if (!fundingSource) {
+				setFormError("Pilih sumber dana terlebih dahulu.");
+				return;
+			}
+		}
+
 		setIsSubmitting(true);
-		await fetch(`/api/admin/budget-proposals/${modalTarget.id}`, {
+		const res = await fetch(`/api/admin/budget-proposals/${modalTarget.id}`, {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				status,
 				approvedAmount: status === "DITOLAK" ? undefined : amount,
+				fundingSource:
+					status === "DITOLAK"
+						? undefined
+						: fundingSource || modalTarget.fundingSource,
 				notes,
 			}),
 		});
+
 		setIsSubmitting(false);
+
+		if (!res.ok) {
+			const data = await res.json().catch(() => null);
+			setFormError(data?.error ?? "Gagal menyimpan.");
+			return;
+		}
+
 		setModalTarget(null);
 		fetchItems();
 	}
-
-	const maxUrgency = Math.max(...items.map((p) => p.urgencyScore), 1);
 
 	return (
 		<div className="flex flex-col w-full p-4 sm:p-6 space-y-6">
@@ -164,12 +213,53 @@ export default function AnggaranPage() {
 				</div>
 			</div>
 
+			<div className="flex flex-col sm:flex-row gap-4">
+				<div className="flex flex-col space-y-1.5 w-full sm:w-52">
+					<label className="text-xs font-medium text-slate-500">Kabupaten</label>
+					<div className="relative">
+						<select
+							value={kabupatenFilter}
+							onChange={(e) => setKabupatenFilter(e.target.value)}
+							className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 pr-9">
+							<option>Semua Kabupaten</option>
+							{availableKabupaten.map((k) => (
+								<option key={k} value={k}>
+									{k}
+								</option>
+							))}
+						</select>
+						<ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+					</div>
+				</div>
+
+				<div className="flex flex-col space-y-1.5 w-full sm:w-52">
+					<label className="text-xs font-medium text-slate-500">
+						Kategori Masalah
+					</label>
+					<div className="relative">
+						<select
+							value={categoryFilter}
+							onChange={(e) => setCategoryFilter(e.target.value)}
+							className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 pr-9">
+							<option>Semua Kategori</option>
+							{Object.entries(ISSUE_LABEL).map(([value, label]) => (
+								<option key={value} value={value}>
+									{label}
+								</option>
+							))}
+						</select>
+						<ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+					</div>
+				</div>
+			</div>
+
 			<div className="bg-white border border-t rounded-xl overflow-hidden flex flex-col justify-between">
 				<div className="overflow-x-auto w-full">
-					<table className="w-full text-left border-collapse min-w-[900px]">
+					<table className="w-full text-left border-collapse min-w-[960px]">
 						<thead>
 							<tr className="bg-muted/40 border-b border-muted/20 text-[11px] font-bold uppercase tracking-wider text-slate-400">
 								<th className="px-6 py-3.5">Destinasi</th>
+								<th className="px-6 py-3.5">Kabupaten</th>
 								<th className="px-6 py-3.5">Aspek Masalah Utama</th>
 								<th className="px-6 py-3.5">Skor Urgensi</th>
 								<th className="px-6 py-3.5">UMKM Terdampak (2km)</th>
@@ -181,7 +271,7 @@ export default function AnggaranPage() {
 							{isLoading && (
 								<tr>
 									<td
-										colSpan={6}
+										colSpan={7}
 										className="px-6 py-8 text-center text-sm text-slate-400">
 										Memuat data...
 									</td>
@@ -191,7 +281,7 @@ export default function AnggaranPage() {
 							{!isLoading && items.length === 0 && (
 								<tr>
 									<td
-										colSpan={6}
+										colSpan={7}
 										className="px-6 py-8 text-center text-sm text-slate-400">
 										Belum ada proposal yang cocok.
 									</td>
@@ -211,6 +301,7 @@ export default function AnggaranPage() {
 												{p.place.address ?? "-"}
 											</div>
 										</td>
+										<td className="px-6 py-4 text-xs text-slate-500">{p.kabupaten}</td>
 										<td className="px-6 py-4">
 											<div className="flex items-center gap-1.5">
 												<AlertTriangleIcon className="w-3.5 h-3.5 text-red-500" />
@@ -228,8 +319,8 @@ export default function AnggaranPage() {
 														style={{ width: `${(p.urgencyScore / maxUrgency) * 100}%` }}
 													/>
 												</div>
-												<span className="text-xs font-mono text-slate-500">
-													{p.urgencyScore.toFixed(1)}
+												<span className="text-xs font-mono text-slate-500 whitespace-nowrap">
+													{urgencyOutOf10(p.urgencyScore)} / 10
 												</span>
 											</div>
 										</td>
@@ -250,7 +341,7 @@ export default function AnggaranPage() {
 										</td>
 										<td className="px-6 py-4 text-center">
 											<button
-												onClick={() => openApprove(p)}
+												onClick={() => openManage(p)}
 												className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 rounded-lg transition-colors">
 												<WalletIcon className="w-3.5 h-3.5" />
 												Kelola
@@ -378,59 +469,117 @@ export default function AnggaranPage() {
 							</h2>
 							<p className="text-xs text-slate-400 mt-0.5">
 								{ISSUE_LABEL[modalTarget.worstCategory]} · Urgensi{" "}
-								{modalTarget.urgencyScore.toFixed(1)} · {modalTarget.affectedUmkmCount}{" "}
-								UMKM sekitar
+								{urgencyOutOf10(modalTarget.urgencyScore)} / 10 ·{" "}
+								{modalTarget.affectedUmkmCount} UMKM sekitar
 							</p>
 						</div>
 
-						<div className="flex flex-col space-y-1">
-							<label className="text-xs font-semibold text-slate-500">
-								Nominal Anggaran (Rp)
-							</label>
-							<input
-								type="number"
-								value={amount}
-								onChange={(e) => setAmount(e.target.value)}
-								placeholder="Contoh: 50000000"
-								className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-							/>
-						</div>
+						{formError && (
+							<div className="px-3 py-2 text-xs font-medium text-red-700 bg-red-50 border border-red-100 rounded-lg">
+								{formError}
+							</div>
+						)}
 
-						<div className="flex flex-col space-y-1">
-							<label className="text-xs font-semibold text-slate-500">
-								Catatan Dinas
-							</label>
-							<textarea
-								rows={3}
-								value={notes}
-								onChange={(e) => setNotes(e.target.value)}
-								className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none"
-							/>
-						</div>
+						{modalTarget.status === "MENUNGGU" && (
+							<>
+								<div className="flex flex-col space-y-1">
+									<label className="text-xs font-semibold text-slate-500">
+										Nominal Anggaran (Rupiah) <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="number"
+										value={amount}
+										onChange={(e) => setAmount(e.target.value)}
+										placeholder="Contoh: 50000000"
+										className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+									/>
+								</div>
 
-						<div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-							<button
-								onClick={() => submitDecision("DITOLAK")}
-								disabled={isSubmitting}
-								className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-								<XCircleIcon className="w-4 h-4" />
-								Tolak
-							</button>
-							<button
-								onClick={() => submitDecision("DISETUJUI")}
-								disabled={isSubmitting}
-								className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-								<CheckCircle2Icon className="w-4 h-4" />
-								Setujui
-							</button>
-							<button
-								onClick={() => submitDecision("DICAIRKAN")}
-								disabled={isSubmitting}
-								className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-primary hover:bg-secondary rounded-lg transition-colors">
-								<WalletIcon className="w-4 h-4" />
-								Cairkan
-							</button>
-						</div>
+								<div className="flex flex-col space-y-1">
+									<label className="text-xs font-semibold text-slate-500">
+										Sumber Dana <span className="text-red-500">*</span>
+									</label>
+									<div className="relative">
+										<select
+											value={fundingSource}
+											onChange={(e) => setFundingSource(e.target.value)}
+											className="w-full appearance-none bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 pr-9">
+											<option value="">Pilih sumber dana...</option>
+											<option value="APBD">APBD</option>
+											<option value="KEMENPAREKRAF">Kemenparekraf</option>
+										</select>
+										<ChevronDownIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+									</div>
+								</div>
+
+								<div className="flex flex-col space-y-1">
+									<label className="text-xs font-semibold text-slate-500">
+										Catatan Dinas
+									</label>
+									<textarea
+										rows={3}
+										value={notes}
+										onChange={(e) => setNotes(e.target.value)}
+										className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none"
+									/>
+								</div>
+
+								<div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+									<button
+										onClick={() => submitDecision("DITOLAK")}
+										disabled={isSubmitting}
+										className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+										<XCircleIcon className="w-4 h-4" />
+										Tolak
+									</button>
+									<button
+										onClick={() => submitDecision("DISETUJUI")}
+										disabled={isSubmitting}
+										className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-primary hover:bg-secondary rounded-lg transition-colors">
+										<CheckCircle2Icon className="w-4 h-4" />
+										{isSubmitting ? "Menyimpan..." : "Setujui Anggaran"}
+									</button>
+								</div>
+							</>
+						)}
+
+						{modalTarget.status === "DISETUJUI" && (
+							<>
+								<div className="text-sm text-slate-700 space-y-1 bg-blue-50/50 border border-blue-100 rounded-lg p-3">
+									<div>
+										Nominal:{" "}
+										<span className="font-semibold">
+											Rp {Number(modalTarget.approvedAmount).toLocaleString("id-ID")}
+										</span>
+									</div>
+									<div>
+										Sumber Dana:{" "}
+										<span className="font-semibold">
+											{modalTarget.fundingSource
+												? FUNDING_LABEL[modalTarget.fundingSource]
+												: "-"}
+										</span>
+									</div>
+								</div>
+								<div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+									<button
+										onClick={() => submitDecision("DICAIRKAN")}
+										disabled={isSubmitting}
+										className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-primary hover:bg-secondary rounded-lg transition-colors">
+										<WalletIcon className="w-4 h-4" />
+										{isSubmitting ? "Memproses..." : "Cairkan Dana"}
+									</button>
+								</div>
+							</>
+						)}
+
+						{(modalTarget.status === "DICAIRKAN" ||
+							modalTarget.status === "DITOLAK") && (
+							<div className="text-sm text-slate-500 bg-slate-50 border border-slate-100 rounded-lg p-3">
+								Proposal ini sudah final ({STATUS_LABEL[modalTarget.status]}), tidak ada
+								aksi lanjutan.
+							</div>
+						)}
 					</div>
 				</div>
 			)}

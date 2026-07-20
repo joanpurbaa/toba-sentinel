@@ -167,6 +167,11 @@ model PlaceIssueSummary {
   @@map("place_issue_summaries")
 }
 
+enum FundingSource {
+  APBD
+  KEMENPAREKRAF
+}
+
 enum BudgetProposalStatus {
   MENUNGGU
   DISETUJUI
@@ -184,6 +189,7 @@ model BudgetProposal {
   affectedUmkmCount Int                  @default(0)
   status            BudgetProposalStatus @default(MENUNGGU)
   approvedAmount    Float?
+  fundingSource     FundingSource?
   approvedById      String?
   approvedBy        User?                @relation("BudgetApprovedBy", fields: [approvedById], references: [id])
   notes             String?
