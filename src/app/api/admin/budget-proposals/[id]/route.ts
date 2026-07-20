@@ -13,10 +13,26 @@ export async function PATCH(
 ) {
 	const { id } = await params;
 	const body = await request.json().catch(() => null);
-	const { status, approvedAmount, approvedById, notes } = body ?? {};
+	const { status, approvedAmount, fundingSource, approvedById, notes } =
+		body ?? {};
 
 	if (!status) {
 		return NextResponse.json({ error: "Status wajib diisi." }, { status: 400 });
+	}
+
+	if (status === "DISETUJUI") {
+		if (!approvedAmount || Number(approvedAmount) <= 0) {
+			return NextResponse.json(
+				{ error: "Nominal anggaran wajib diisi." },
+				{ status: 400 },
+			);
+		}
+		if (!fundingSource) {
+			return NextResponse.json(
+				{ error: "Sumber dana wajib dipilih." },
+				{ status: 400 },
+			);
+		}
 	}
 
 	const proposal = await db.budgetProposal.update({
@@ -25,6 +41,7 @@ export async function PATCH(
 			status,
 			approvedAmount:
 				approvedAmount !== undefined ? Number(approvedAmount) : undefined,
+			fundingSource: fundingSource ?? undefined,
 			approvedById: approvedById ?? undefined,
 			notes: notes ?? undefined,
 		},
