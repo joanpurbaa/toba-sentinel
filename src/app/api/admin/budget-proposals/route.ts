@@ -54,7 +54,16 @@ export async function GET(request: Request) {
 		where,
 		orderBy: { urgencyScore: "desc" },
 		include: {
-			place: { select: { id: true, name: true, placeCode: true, address: true } },
+			place: {
+				select: {
+					id: true,
+					name: true,
+					placeCode: true,
+					address: true,
+					bpodtVerified: true,
+					bpodtNote: true,
+				},
+			},
 			approvedBy: { select: { id: true, name: true } },
 		},
 	});

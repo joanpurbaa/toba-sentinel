@@ -11,7 +11,14 @@ interface Proposal {
 	fundingSource: string | null;
 	notes: string | null;
 	kabupaten: string;
-	place: { id: string; name: string; placeCode: string; address: string | null };
+	place: {
+		id: string;
+		name: string;
+		placeCode: string;
+		address: string | null;
+		bpodtVerified?: boolean | null;
+		bpodtNote?: string | null;
+	};
 	approvedBy: { name: string } | null;
 }
 

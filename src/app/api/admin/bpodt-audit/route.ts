@@ -144,7 +144,7 @@ export async function PATCH(request: Request) {
 
 		const keys = await redis.keys(`${CACHE_PREFIX}*`);
 		if (keys.length > 0) {
-			await redis.del(keys);
+			await redis.del(...keys);
 		}
 
 		return NextResponse.json(updatedPlace);
