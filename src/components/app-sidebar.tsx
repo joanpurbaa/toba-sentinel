@@ -22,6 +22,7 @@ import {
   Landmark,
   ShieldCheck,
   Bus,
+  Sparkles,
 } from "lucide-react";
 
 const defaultNavGroups = [
@@ -33,6 +34,7 @@ const defaultNavGroups = [
 			{ name: "Anggaran", url: "/anggaran", icon: <Landmark /> },
 			{ name: "BPODT Audit", url: "/bpodt-audit", icon: <ShieldCheck /> },
 			{ name: "Koridor Wisata", url: "/koridor", icon: <Bus /> },
+			{ name: "Impact Simulator", url: "/simulator", icon: <Sparkles /> },
 			// { name: "Distribusi", url: "/distribusi", icon: <Truck /> },
 			// { name: "Petugas", url: "/petugas", icon: <Users /> },
 		],
