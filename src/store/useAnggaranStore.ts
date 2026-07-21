@@ -83,7 +83,7 @@ export const useAnggaranStore = create<AnggaranStore>((set, get) => ({
 		params.set("pageSize", String(pageSize));
 
 		const response = await fetch(
-			`/api/admin/budget-proposals?${params.toString()}`,
+			`/api/budget-proposals?${params.toString()}`,
 		);
 		const data = await response.json();
 

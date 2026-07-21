@@ -15,6 +15,7 @@ import {
 	Eye,
 } from "lucide-react";
 import AddPlaceModal from "@/components/modal/AddPlaceModal";
+import BpodtAuditModal from "@/components/modal/BpodtAuditModal";
 import type { ApiPlace } from "@/app/types/Tempat";
 import {
 	Pagination,
@@ -99,6 +100,7 @@ export default function TempatPage() {
 
 	const [isAddOpen, setIsAddOpen] = useState(false);
 	const [editTarget, setEditTarget] = useState<ApiPlace | null>(null);
+	const [auditTarget, setAuditTarget] = useState<string | null>(null);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 	const [deleteError, setDeleteError] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -292,11 +294,9 @@ export default function TempatPage() {
 								<th className="px-6 py-3.5">Nama Tempat</th>
 								<th className="px-6 py-3.5">Kategori</th>
 								<th className="px-6 py-3.5">Alamat</th>
-								{/* <th className="px-6 py-3.5">Koordinat</th> */}
 								<th className="px-6 py-3.5">Rating</th>
 								<th className="px-6 py-3.5">Skor Masalah</th>
 								<th className="px-6 py-3.5">BPODT</th>
-								{/* <th className="px-6 py-3.5">Pemilik</th> */}
 								<th className="px-6 py-3.5 text-center">Aksi</th>
 							</tr>
 						</thead>
@@ -342,11 +342,6 @@ export default function TempatPage() {
 										<td className="px-6 py-4 text-xs text-slate-500 max-w-[220px] truncate">
 											{place.address ?? "-"}
 										</td>
-										{/* <td className="px-6 py-4 font-mono text-xs text-slate-500">
-											{place.latitude !== null && place.longitude !== null
-												? `${place.latitude.toFixed(4)}, ${place.longitude.toFixed(4)}`
-												: "-"}
-										</td> */}
 										<td className="px-6 py-4 text-slate-900">
 											{place.rating !== null ? place.rating.toFixed(1) : "-"}
 										</td>
@@ -366,25 +361,24 @@ export default function TempatPage() {
 												<span className="text-xs text-slate-300">Belum ada data</span>
 											)}
 										</td>
-										<td className="px-6 py-4">
-											<span
-												className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
-													place.bpodtVerified === "SINKRON"
-														? "bg-green-50 text-green-700 border border-green-100"
-														: place.bpodtVerified === "TIDAK_SINKRON"
-															? "bg-red-50 text-red-700 border border-red-100"
+										<td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+											{place.bpodtVerified === "TIDAK_SINKRON" ? (
+												<button
+													onClick={() => setAuditTarget(place.id)}
+													className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-100 hover:bg-red-100 transition-colors cursor-pointer">
+													Tidak Sinkron
+												</button>
+											) : (
+												<span
+													className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${
+														place.bpodtVerified === "SINKRON"
+															? "bg-green-50 text-green-700 border border-green-100"
 															: "bg-slate-100 text-slate-500 border border-slate-200"
-												}`}>
-												{place.bpodtVerified === "SINKRON"
-													? "Sinkron"
-													: place.bpodtVerified === "TIDAK_SINKRON"
-														? "Tidak Sinkron"
-														: "Belum Dicek"}
-											</span>
+													}`}>
+													{place.bpodtVerified === "SINKRON" ? "Sinkron" : "Belum Dicek"}
+												</span>
+											)}
 										</td>
-										{/* <td className="px-6 py-4 text-xs text-slate-500">
-											{place.ownerName ?? "-"}
-										</td> */}
 										<td
 											className="px-6 py-4 text-center"
 											onClick={(e) => e.stopPropagation()}>
@@ -540,6 +534,13 @@ export default function TempatPage() {
 						fetchSummary();
 					}}
 					editData={editTarget}
+				/>
+			)}
+
+			{auditTarget && (
+				<BpodtAuditModal
+					placeId={auditTarget}
+					onClose={() => setAuditTarget(null)}
 				/>
 			)}
 

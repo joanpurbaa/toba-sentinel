@@ -62,7 +62,7 @@ export const useBpodtAuditStore = create<BpodtAuditStore>((set, get) => ({
 		params.set("pageSize", String(pageSize));
 
 		try {
-			const response = await fetch(`/api/admin/bpodt-audit?${params.toString()}`);
+			const response = await fetch(`/api/bpodt-audit?${params.toString()}`);
 			const data = await response.json();
 
 			set({
@@ -78,7 +78,7 @@ export const useBpodtAuditStore = create<BpodtAuditStore>((set, get) => ({
 
 	updateAuditStatus: async (id, bpodtVerified, bpodtNote) => {
 		try {
-			const res = await fetch("/api/admin/bpodt-audit", {
+			const res = await fetch("/api/bpodt-audit", {
 				method: "PATCH",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ id, bpodtVerified, bpodtNote }),

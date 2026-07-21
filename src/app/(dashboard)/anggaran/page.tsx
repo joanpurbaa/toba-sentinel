@@ -68,14 +68,7 @@ interface Proposal {
 	fundingSource: string | null;
 	notes: string | null;
 	kabupaten: string;
-	place: {
-		id: string;
-		name: string;
-		placeCode: string;
-		address: string | null;
-		bpodtVerified?: boolean | null;
-		bpodtNote?: string | null;
-	};
+	place: { id: string; name: string; placeCode: string; address: string | null };
 	approvedBy: { name: string } | null;
 }
 
@@ -169,7 +162,7 @@ export default function AnggaranPage() {
 		}
 
 		setIsSubmitting(true);
-		const res = await fetch(`/api/admin/budget-proposals/${modalTarget.id}`, {
+		const res = await fetch(`/api/budget-proposals/${modalTarget.id}`, {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
@@ -267,7 +260,6 @@ export default function AnggaranPage() {
 							<tr className="bg-muted/40 border-b border-muted/20 text-[11px] font-bold uppercase tracking-wider text-slate-400">
 								<th className="px-6 py-3.5">Destinasi</th>
 								<th className="px-6 py-3.5">Kabupaten</th>
-								<th className="px-6 py-3.5">Audit BPODT</th>
 								<th className="px-6 py-3.5">Aspek Masalah Utama</th>
 								<th className="px-6 py-3.5">Skor Urgensi</th>
 								<th className="px-6 py-3.5">UMKM Terdampak (2km)</th>
@@ -310,19 +302,6 @@ export default function AnggaranPage() {
 											</div>
 										</td>
 										<td className="px-6 py-4 text-xs text-slate-500">{p.kabupaten}</td>
-										<td className="px-6 py-4 text-xs font-semibold">
-											{p.place.bpodtVerified === false ? (
-												<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-100">
-													🚨 Tidak Sinkron
-												</span>
-											) : p.place.bpodtVerified === true ? (
-												<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
-													✓ Valid
-												</span>
-											) : (
-												<span className="text-slate-400 font-normal">Belum Dicek</span>
-											)}
-										</td>
 										<td className="px-6 py-4">
 											<div className="flex items-center gap-1.5">
 												<AlertTriangleIcon className="w-3.5 h-3.5 text-red-500" />

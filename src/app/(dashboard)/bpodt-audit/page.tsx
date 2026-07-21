@@ -12,7 +12,6 @@ import {
 	FileCheck2,
 } from "lucide-react";
 import { useBpodtAuditStore } from "@/store/useBpodtAuditStore";
-import BpodtAuditDetailModal from "@/components/modal/BpodtAuditDetailModal";
 import {
 	Pagination,
 	PaginationContent,
@@ -29,6 +28,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import BpodtAuditModal from "@/components/modal/BpodtAuditModal";
 
 const categoryLabel: Record<string, string> = {
 	WISATA: "Wisata",
@@ -430,11 +430,12 @@ export default function BpodtAuditPage() {
 				</div>
 			</div>
 
-			<BpodtAuditDetailModal
-				placeId={selectedPlaceId}
-				isOpen={selectedPlaceId !== null}
-				onClose={() => setSelectedPlaceId(null)}
-			/>
+			{selectedPlaceId && (
+				<BpodtAuditModal
+					placeId={selectedPlaceId}
+					onClose={() => setSelectedPlaceId(null)}
+				/>
+			)}
 		</div>
 	);
 }

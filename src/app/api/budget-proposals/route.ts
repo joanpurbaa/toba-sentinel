@@ -47,6 +47,7 @@ export async function GET(request: Request) {
 				? { place: { name: { contains: search, mode: "insensitive" as const } } }
 				: {},
 			category && category !== "Semua Kategori" ? { worstCategory: category } : {},
+			{ urgencyScore: { gt: 0 } },
 		],
 	};
 
@@ -54,16 +55,7 @@ export async function GET(request: Request) {
 		where,
 		orderBy: { urgencyScore: "desc" },
 		include: {
-			place: {
-				select: {
-					id: true,
-					name: true,
-					placeCode: true,
-					address: true,
-					bpodtVerified: true,
-					bpodtNote: true,
-				},
-			},
+			place: { select: { id: true, name: true, placeCode: true, address: true } },
 			approvedBy: { select: { id: true, name: true } },
 		},
 	});

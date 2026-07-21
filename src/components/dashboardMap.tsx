@@ -1,25 +1,26 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import Link from "next/link";
+import BpodtAuditModal from "@/components/modal/BpodtAuditModal";
 import "leaflet/dist/leaflet.css";
-import { useDashboardStore } from "@/store/useDashboardStore";
 
-// type PlacePoint = {
-// 	id: string;
-// 	placeCode: string;
-// 	name: string;
-// 	category: string;
-// 	subtype: string | null;
-// 	latitude: number;
-// 	longitude: number;
-// 	rating: number | null;
-// 	address: string | null;
-// 	aiGapScore: number | null;
-// 	aiTotalMentions: number;
-// 	aiWorstCategory: string | null;
-// };
+type PlacePoint = {
+	id: string;
+	placeCode: string;
+	name: string;
+	category: string;
+	subtype: string | null;
+	latitude: number;
+	longitude: number;
+	rating: number | null;
+	address: string | null;
+	aiGapScore: number | null; // 0-1, proportion of negative mentions
+	aiTotalMentions: number;
+	aiWorstCategory: string | null;
+	bpodtVerified: string;
+};
 
 const CATEGORY_LABEL: Record<string, string> = {
 	WISATA: "Wisata",
@@ -37,6 +38,9 @@ const ISSUE_LABEL: Record<string, string> = {
 	LAINNYA: "Lainnya",
 };
 
+type ColorMode = "rating" | "ai";
+
+// rating 1 -> red, rating 5 -> green (gray for no rating)
 function ratingColor(rating: number | null): string {
 	if (rating === null) return "#9ca3af";
 	const clamped = Math.max(1, Math.min(5, rating));
@@ -44,6 +48,7 @@ function ratingColor(rating: number | null): string {
 	return `hsl(${hue}, 75%, 45%)`;
 }
 
+// gapScore 0 -> green, gapScore 1 -> red (gray for no AI data yet)
 function gapColor(gapScore: number | null): string {
 	if (gapScore === null) return "#9ca3af";
 	const clamped = Math.max(0, Math.min(1, gapScore));
@@ -52,25 +57,31 @@ function gapColor(gapScore: number | null): string {
 }
 
 export default function DashboardMap() {
-	const {
-		places,
-		isLoading,
-		colorMode,
-		negativeOnly,
-		negativeCount,
-		setColorMode,
-		setNegativeOnly,
-		fetchPlaces,
-	} = useDashboardStore();
+	const [places, setPlaces] = useState<PlacePoint[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [colorMode, setColorMode] = useState<ColorMode>("rating");
+	const [negativeOnly, setNegativeOnly] = useState(false);
+	const [auditTarget, setAuditTarget] = useState<string | null>(null);
 
 	useEffect(() => {
-		fetchPlaces();
-	}, [fetchPlaces]);
+		fetch("/api/places/map")
+			.then((res) => res.json())
+			.then((data) => {
+				setPlaces(data);
+				setIsLoading(false);
+			});
+	}, []);
 
 	const visiblePlaces = useMemo(() => {
 		if (!negativeOnly) return places;
 		return places.filter((p) => p.aiGapScore !== null && p.aiGapScore >= 0.5);
 	}, [places, negativeOnly]);
+
+	const negativeCount = useMemo(
+		() =>
+			places.filter((p) => p.aiGapScore !== null && p.aiGapScore >= 0.5).length,
+		[places],
+	);
 
 	return (
 		<div className="relative w-full h-full">
@@ -80,6 +91,7 @@ export default function DashboardMap() {
 				</div>
 			)}
 
+			{/* Controls */}
 			<div className="absolute top-3 right-3 z-[1000] bg-card border border-border rounded-xl shadow-md p-3 space-y-2.5 w-[240px]">
 				<div>
 					<div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
@@ -171,6 +183,13 @@ export default function DashboardMap() {
 									{p.address && (
 										<div className="text-xs text-muted-foreground mt-1">{p.address}</div>
 									)}
+									{p.bpodtVerified === "TIDAK_SINKRON" && (
+										<button
+											onClick={() => setAuditTarget(p.id)}
+											className="inline-flex mt-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-100 hover:bg-red-100 transition-colors cursor-pointer">
+											⚠ Tidak Sinkron BPODT — Lihat Audit
+										</button>
+									)}
 									<Link
 										href={`/tempat/${p.id}`}
 										className="inline-block text-xs font-semibold text-primary hover:underline mt-2">
@@ -182,6 +201,13 @@ export default function DashboardMap() {
 					);
 				})}
 			</MapContainer>
+
+			{auditTarget && (
+				<BpodtAuditModal
+					placeId={auditTarget}
+					onClose={() => setAuditTarget(null)}
+				/>
+			)}
 		</div>
 	);
 }

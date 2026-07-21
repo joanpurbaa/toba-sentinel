@@ -22,7 +22,7 @@ import {
   Landmark,
   ShieldCheck,
   Bus,
-  Sparkles,
+  BookOpenText,
 } from "lucide-react";
 
 const defaultNavGroups = [
@@ -33,8 +33,8 @@ const defaultNavGroups = [
 			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
 			{ name: "Anggaran", url: "/anggaran", icon: <Landmark /> },
 			{ name: "BPODT Audit", url: "/bpodt-audit", icon: <ShieldCheck /> },
-			{ name: "Koridor Wisata", url: "/koridor", icon: <Bus /> },
-			{ name: "Impact Simulator", url: "/simulator", icon: <Sparkles /> },
+			{ name: "Transportasi", url: "/transportasi", icon: <Bus /> },
+			{ name: "Pengetahuan", url: "/pengetahuan", icon: <BookOpenText /> },
 			// { name: "Distribusi", url: "/distribusi", icon: <Truck /> },
 			// { name: "Petugas", url: "/petugas", icon: <Users /> },
 		],

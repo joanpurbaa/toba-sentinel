@@ -17,6 +17,7 @@ export async function GET() {
 			longitude: true,
 			rating: true,
 			address: true,
+			bpodtVerified: true,
 			issueSummaries: {
 				where: { totalMentions: { gt: 0 } },
 				select: {
@@ -51,6 +52,7 @@ export async function GET() {
 			longitude: p.longitude,
 			rating: p.rating,
 			address: p.address,
+			bpodtVerified: p.bpodtVerified,
 			aiGapScore: totalMentions > 0 ? totalNegative / totalMentions : null,
 			aiTotalMentions: totalMentions,
 			aiWorstCategory: worst?.category ?? null,
