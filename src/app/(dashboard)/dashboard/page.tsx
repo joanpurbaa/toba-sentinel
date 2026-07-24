@@ -19,7 +19,7 @@ export default function Dashboard() {
 				</p>
 			</div>
 
-			<div className="flex-1 min-h-[600px] bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
+			<div className="relative z-0 flex-1 min-h-[600px] bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
 				<DashboardMap />
 			</div>
 		</div>

@@ -191,7 +191,7 @@ export default function Masuk() {
 
 				<div className="text-center lg:text-left">
 					<p className="text-[11px] font-medium text-slate-400 tracking-wide">
-						Pharmasync &copy; {new Date().getFullYear()} &bull; Supply Chain
+						Toba Sentinel   &copy; {new Date().getFullYear()} &bull; Pariwisata
 						Management System
 					</p>
 				</div>
@@ -202,30 +202,26 @@ export default function Masuk() {
 
 				<div className="absolute top-10 left-10 right-10 space-y-4 z-10">
 					<div className="flex gap-2">
-						<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 border border-red-300 text-red-300 text-[11px] font-bold">
+						<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 border border-green-300 text-green-300 text-[11px] font-bold">
 							<ActivityIcon className="w-3 h-3" />
 							Real-time
 						</span>
-						<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 border border-white/10 text-white text-[11px] font-bold">
-							<TruckIcon className="w-3 h-3" />
-							Tracking Armada
-						</span>
 					</div>
 					<h2 className="text-3xl font-bold text-white tracking-tight leading-tight max-w-sm">
-						Kelola Rantai Pasok Farmasi Anda
+						Kelola Rantai Pariwisata Danau Toba
 					</h2>
 					<p className="text-sm text-slate-300 leading-relaxed max-w-sm">
-						Pantau stok, distribusi, dan armada kurir secara terpusat dan aman dalam
+						Pantau destinasi, hotel, dan restoran UMKM secara terpusat dan aman dalam
 						satu dashboard.
 					</p>
 				</div>
 
 				<div className="relative w-full h-[700px] mt-20">
 					<Image
-						src="/man.png"
+						src="/rumah.png"
 						alt="Petugas lapangan Pharmasync"
 						fill
-						className="object-contain object-bottom"
+						className="object-cover object-bottom"
 						priority
 					/>
 					<div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-secondary to-transparent"></div>

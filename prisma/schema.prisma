@@ -113,6 +113,7 @@ model Place {
   reports                Report[]
   issueSummaries         PlaceIssueSummary[]
   budgetProposal         BudgetProposal?
+  roadAccessRoute        RoadAccessRoute?
 
   @@index([category])
   @@index([ownershipType])
@@ -242,6 +243,21 @@ model KnowledgeArticle {
 
   @@index([category])
   @@map("knowledge_articles")
+}
+
+model RoadAccessRoute {
+  id             String   @id @default(uuid())
+  placeId        String   @unique
+  place          Place    @relation(fields: [placeId], references: [id])
+  geometry       Json     // GeoJSON LineString coordinates from OSRM
+  distanceKm     Float
+  gapScore       Float?   // AKSES category gapScore, null if no AI data yet
+  negativeCount  Int      @default(0)
+  totalMentions  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("road_access_routes")
 }
 
 model Report {

@@ -20,9 +20,7 @@ import {
 	LayoutDashboard,
   MapPinned,
   Landmark,
-  ShieldCheck,
-  Bus,
-  BookOpenText,
+  Road,
 } from "lucide-react";
 
 const defaultNavGroups = [
@@ -30,35 +28,11 @@ const defaultNavGroups = [
 		label: "Operasional",
 		items: [
 			{ name: "Dashboard", url: "/dashboard", icon: <LayoutDashboard /> },
-			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
 			{ name: "Anggaran", url: "/anggaran", icon: <Landmark /> },
-			{ name: "BPODT Audit", url: "/bpodt-audit", icon: <ShieldCheck /> },
-			{ name: "Transportasi", url: "/transportasi", icon: <Bus /> },
-			{ name: "Pengetahuan", url: "/pengetahuan", icon: <BookOpenText /> },
-			// { name: "Distribusi", url: "/distribusi", icon: <Truck /> },
-			// { name: "Petugas", url: "/petugas", icon: <Users /> },
+			{ name: "Tempat", url: "/tempat", icon: <MapPinned /> },
+			{ name: "Jalan", url: "/jalan", icon: <Road /> },
 		],
 	},
-	// {
-	// 	label: "Manajemen Data",
-	// 	items: [
-	// 		{ name: "Mitra", url: "/mitra", icon: <Hospital /> },
-	// 		{ name: "Riwayat", url: "/riwayat", icon: <History /> },
-	// 		{ name: "Visualisasi 3D", url: "/warehouse", icon: <Box /> },
-	// 	],
-	// },
-	// {
-	// 	label: "Asisten AI",
-	// 	items: [
-	// 		{
-	// 			name: "Chat Pharmasync AI",
-	// 			url: "https://t.me/PharmasyncBot",
-	// 			icon: <SparklesIcon />,
-	// 			external: true,
-	// 			accent: true,
-	// 		},
-	// 	],
-	// },
 ];
 
 const driverNavGroups = [
@@ -167,7 +141,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	return (
 		<Sidebar
 			collapsible="icon"
-			className="bg-white border-r border-slate-200 text-slate-900"
+			className="relative z-50 bg-white border-r border-slate-200 text-slate-900"
 			{...props}>
 			<SidebarHeader className="bg-white border-b border-slate-100">
 				<SidebarMenu>
@@ -184,9 +158,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							</div>
 							<div className="grid flex-1 text-left text-sm leading-tight">
 								<span className="truncate font-semibold text-slate-900">
-									Pharmasync
+									Toba Sentinel
 								</span>
-								<span className="truncate text-xs text-slate-500">Supply Chain</span>
+								<span className="truncate text-xs text-slate-500">Pariwisata</span>
 							</div>
 						</SidebarMenuButton>
 					</SidebarMenuItem>

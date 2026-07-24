@@ -28,7 +28,6 @@ export default function AddPlaceModal({
 		operationalHour: "",
 		facilitiesOrActivities: "",
 		description: "",
-		ownerName: "",
 	};
 
 	const [formData, setFormData] = useState(initialFormData);
@@ -50,7 +49,6 @@ export default function AddPlaceModal({
 				operationalHour: editData.operationalHour ?? "",
 				facilitiesOrActivities: editData.facilitiesOrActivities ?? "",
 				description: editData.description ?? "",
-				ownerName: editData.ownerName ?? "",
 			});
 		} else {
 			setFormData(initialFormData);
@@ -142,6 +140,7 @@ export default function AddPlaceModal({
 							required
 							value={formData.name}
 							onChange={handleInputChange}
+              placeholder="Contoh: Sipiso piso"
 							className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 						/>
 					</div>
@@ -171,22 +170,10 @@ export default function AddPlaceModal({
 								name="subtype"
 								value={formData.subtype}
 								onChange={handleInputChange}
+                placeholder="Contoh: Air Terjun"
 								className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 							/>
 						</div>
-					</div>
-
-					<div className="flex flex-col space-y-1">
-						<label className="text-xs font-semibold text-slate-500">
-							Nama Pemilik
-						</label>
-						<input
-							type="text"
-							name="ownerName"
-							value={formData.ownerName}
-							onChange={handleInputChange}
-							className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
-						/>
 					</div>
 
 					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -197,6 +184,7 @@ export default function AddPlaceModal({
 								name="priceMin"
 								value={formData.priceMin}
 								onChange={handleInputChange}
+                placeholder="Contoh: 500.000"
 								className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 							/>
 						</div>
@@ -207,6 +195,7 @@ export default function AddPlaceModal({
 								name="priceMax"
 								value={formData.priceMax}
 								onChange={handleInputChange}
+                placeholder="Contoh: 2.000.000"
 								className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 							/>
 						</div>
@@ -243,6 +232,7 @@ export default function AddPlaceModal({
 							name="address"
 							value={formData.address}
 							onChange={handleInputChange}
+              placeholder="Contoh: Jl.Kenanga No 1"
 							className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 						/>
 					</div>
@@ -256,6 +246,7 @@ export default function AddPlaceModal({
 							name="operationalHour"
 							value={formData.operationalHour}
 							onChange={handleInputChange}
+              placeholder="Contoh: 09:00"
 							className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 						/>
 					</div>
@@ -269,6 +260,7 @@ export default function AddPlaceModal({
 							name="facilitiesOrActivities"
 							value={formData.facilitiesOrActivities}
 							onChange={handleInputChange}
+              placeholder="Contoh: Permandian air hangat"
 							className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800"
 						/>
 					</div>
@@ -280,6 +272,7 @@ export default function AddPlaceModal({
 							rows={2}
 							value={formData.description}
 							onChange={handleInputChange}
+              placeholder="Contoh: Permandian air panas belerang"
 							className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800 resize-none"
 						/>
 					</div>

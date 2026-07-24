@@ -123,7 +123,6 @@ export async function POST(request: Request) {
 		operationalHour,
 		facilitiesOrActivities,
 		description,
-		ownerName,
 	} = body;
 
 	if (!name || !category) {
@@ -188,7 +187,6 @@ export async function POST(request: Request) {
 					operationalHour: operationalHour || null,
 					facilitiesOrActivities: facilitiesOrActivities || null,
 					description: description || null,
-					ownerName: ownerName || null,
 				},
 			});
 			break;

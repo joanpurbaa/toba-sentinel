@@ -16,7 +16,7 @@ type PlacePoint = {
 	longitude: number;
 	rating: number | null;
 	address: string | null;
-	aiGapScore: number | null; // 0-1, proportion of negative mentions
+	aiGapScore: number | null;
 	aiTotalMentions: number;
 	aiWorstCategory: string | null;
 	bpodtVerified: string;
@@ -40,7 +40,6 @@ const ISSUE_LABEL: Record<string, string> = {
 
 type ColorMode = "rating" | "ai";
 
-// rating 1 -> red, rating 5 -> green (gray for no rating)
 function ratingColor(rating: number | null): string {
 	if (rating === null) return "#9ca3af";
 	const clamped = Math.max(1, Math.min(5, rating));
@@ -48,7 +47,6 @@ function ratingColor(rating: number | null): string {
 	return `hsl(${hue}, 75%, 45%)`;
 }
 
-// gapScore 0 -> green, gapScore 1 -> red (gray for no AI data yet)
 function gapColor(gapScore: number | null): string {
 	if (gapScore === null) return "#9ca3af";
 	const clamped = Math.max(0, Math.min(1, gapScore));
@@ -86,13 +84,12 @@ export default function DashboardMap() {
 	return (
 		<div className="relative w-full h-full">
 			{isLoading && (
-				<div className="absolute inset-0 z-[1000] flex items-center justify-center bg-card/60 text-sm text-muted-foreground">
+				<div className="absolute inset-0 z-30 flex items-center justify-center bg-card/80 text-sm text-muted-foreground backdrop-blur-xs">
 					Memuat peta...
 				</div>
 			)}
 
-			{/* Controls */}
-			<div className="absolute top-3 right-3 z-[1000] bg-card border border-border rounded-xl shadow-md p-3 space-y-2.5 w-[240px]">
+			<div className="absolute top-3 right-3 z-20 bg-card border border-border rounded-xl shadow-md p-3 space-y-2.5 w-[240px]">
 				<div>
 					<div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
 						Mode Warna
@@ -144,6 +141,7 @@ export default function DashboardMap() {
 				center={[2.61, 99.0]}
 				zoom={10}
 				scrollWheelZoom
+				className="z-10"
 				style={{ width: "100%", height: "100%" }}>
 				<TileLayer
 					url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
